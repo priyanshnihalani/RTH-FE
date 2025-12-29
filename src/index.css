@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@theme {
+  --color-primary: #FB8924;
+  --color-primary-dark: #f27f1c;
+}
+
+@layer base {
+  html {
+    font-family: "Inter", system-ui, sans-serif;
+  }
+}
+@layer components {
+  .input {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm 
+           focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary;
+  }
+}
+
+.input-table {
+  @apply w-full h-11 px-3 rounded-lg border border-slate-300 
+         bg-white text-slate-700 text-sm
+         focus:outline-none focus:ring-2 focus:ring-primary/40
+         hover:border-primary;
+}

@@ -1,0 +1,49 @@
+/* ===== FULL UI BLOCKER ===== */
+.blocker {
+  position: fixed;
+  inset: 0;
+  background: rgba(212, 212, 212, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  /* MOST IMPORTANT */
+  z-index: 9999;
+  pointer-events: all;
+}
+
+/* ===== LOGO LOADER ===== */
+.loader {
+  width: 90px;
+  height: 90px;
+
+  animation: rock 1.4s ease-in-out infinite;
+  transform-origin: center;
+
+  /* subtle polish */
+  opacity: 0.9;
+  filter: drop-shadow(0 0 6px rgba(255, 165, 0, 0.35));
+}
+
+/* ===== ROCKING ANIMATION ===== */
+@keyframes rock {
+  0% {
+    transform: rotate(-7deg);
+  }
+  50% {
+    transform: rotate(7deg);
+  }
+  100% {
+    transform: rotate(-7deg);
+  }
+}
+
+/* ===== TEXT ===== */
+.blocker p {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #ffb703;
+  letter-spacing: 0.5px;
+}
