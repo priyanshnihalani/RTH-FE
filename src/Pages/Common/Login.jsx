@@ -1,6 +1,6 @@
 import { Mail, LockIcon, Eye, School, Donut, ChartBarIncreasing, ChartBar, ChartCandlestickIcon, ArrowRight, Contact, Phone, LucideCircleArrowRight } from "lucide-react"
 import { useState } from "react";
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, replace, useNavigate } from 'react-router-dom'
 import { ApiService } from "../../Services/ApiService";
 import BlockingLoader from "../../components/BlockingLoader";
 import Cookies from "js-cookie";
@@ -65,9 +65,8 @@ const Login = () => {
 
             const { accessToken, role, status } = res;
 
-            console.log(accessToken)
             Cookies.set("accessToken", accessToken, {
-                expires: 1,       
+                expires: 1,
                 sameSite: "lax",
             });
 
@@ -77,13 +76,7 @@ const Login = () => {
                 return;
             }
 
-            if (role === "admin") {
-                navigate("/admin/dashboard", { replace: true });
-            } else if (role === "trainer") {
-                navigate("/trainer/dashboard", { replace: true });
-            } else {
-                navigate("/trainee/dashboard", { replace: true });
-            }
+            navigate("/", { replace: true })
 
         } catch (err) {
             setErrors({

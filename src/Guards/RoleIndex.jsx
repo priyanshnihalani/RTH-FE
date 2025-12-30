@@ -7,13 +7,27 @@ const RoleIndex = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  console.log(user)
+  const getUser = async () => {
     const accessToken = Cookies.get("accessToken");
 
-    ApiService.post("/api/users/auth/me", {accessToken})
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+    try {
+      setLoading(true)
+      const res = await ApiService.post("/api/users/auth/me", {
+        accessToken
+      })
+      setUser(res)
+    }
+    catch(err){
+      console.log(err)
+    }
+    finally{
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    getUser()
   }, []);
 
   if (loading) return null;

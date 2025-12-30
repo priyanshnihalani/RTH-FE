@@ -9,66 +9,31 @@ const AuthGuard = ({ children, requireAuth = true }) => {
   const location = useLocation();
 
   const checkAuth = async () => {
+    setLoading(true)
+    const accesscookies = Cookies.get("accessToken")
+    const waitingcookies = Cookies.get("accessToken")
+
     try {
-      setLoading(true);
-
-      const accessToken = Cookies.get("accessToken");
-
-      if (!accessToken) {
-        setAuthorized("no");
-        return;
-      }
-
-      const res = await ApiService.post(
-        "/api/users/auth/me",
-        { accessToken }
-      );
-
-
-      if (res.status === "approved") {
-        setAuthorized("yes");
-        return;
-      }
-
-      setAuthorized("no");
-
-    } catch (err) {
-
+      await ApiService.post("/api/users/auth/me", {
+        accessToken: accesscookies
+      });
+      Cookies.remove(waitingcookies)
+      setAuthorized("yes")
+    }
+    catch (err) {
       try {
-        const waitingToken = Cookies.get("waitingToken");
-
-        if (!waitingToken) {
-          setAuthorized("no");
-          return;
-        }
-
-
-        const res = await ApiService.post(
-          "/api/users/auth/status",
-          { waitingToken }
-        );
-
-
-        if (res.type === "waiting") {
-          setAuthorized("yesno");
-        } 
-        else if (res.type === "auth") {
-          Cookies.set("accessToken", res.accessToken, {
-            expires: 1,
-            sameSite: "lax",
-          });
-          Cookies.remove("waitingToken");
-          setAuthorized("yes");
-        } 
-        else {
-          setAuthorized("no");
-        }
-
-      } catch {
-        setAuthorized("no");
+        await ApiService.post("/api/users/auth/status", {
+          waitingToken: waitingcookies
+        })
+        setAuthorized("no")
       }
-    } finally {
-      setLoading(false);
+      catch (err) {
+        console.log(err)
+        setAuthorized("no")
+      }
+    }
+    finally {
+      setLoading(false)
     }
   };
 
