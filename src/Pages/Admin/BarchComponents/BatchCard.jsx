@@ -61,7 +61,7 @@ export default function BatchCard({
         {/* Dates */}
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <Calendar size={14} />
-          {startDate} → {endDate}
+          {startDate || "No Fixed Start Date"} → {endDate || "No Fixed End Date"}
         </div>
       </div>
 
