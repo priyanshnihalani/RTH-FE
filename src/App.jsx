@@ -1,5 +1,6 @@
 import "./App.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { ToastContainer } from "react-toastify"
 
 import AuthGuard from "./Guards/AuthGuard";
 import RoleIndex from "./Guards/RoleIndex";
@@ -112,7 +113,10 @@ function App() {
     { path: "*", element: <NotFound /> },
   ]);
 
-  return <RouterProvider router={router} />;
+  return <>
+  <RouterProvider router={router} />
+  <ToastContainer/>
+  </>;
 }
 
 export default App;

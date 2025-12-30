@@ -18,8 +18,8 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
       setFormData({
         name: batch.name || "",
         technology: batch.technology || "",
-        startDate: batch.startDate || "",
-        endDate: batch.endDate || ""
+        startDate: batch.startDate || null,
+        endDate: batch.endDate || null
       });
       setErrors({});
     }
@@ -41,11 +41,11 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
       errors.technology = "Please select a technology";
     }
 
-    if (!formData.startDate) {
+    if (!formData.startDate && formData.endDate) {
       errors.startDate = "Start date is required";
     }
 
-    if (!formData.endDate) {
+    if (!formData.endDate && formData.startDate) {
       errors.endDate = "End date is required";
     }
 

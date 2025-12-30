@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { ApiService } from "../../Services/ApiService";
 import Modal from "../../components/Modal";
-
+import "react-toastify/dist/ReactToastify.css";
+import { toast, ToastContainer } from "react-toastify";
+import ToastLogo from "../../components/ToastLogo";
 const AddBatchModal = ({ open, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: "",
     technology: "",
-    startDate: "",
-    endDate: ""
+    startDate: null,
+    endDate: null
   });
 
   const [errors, setErrors] = useState({});
@@ -27,10 +29,10 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
     if (!formData.technology) {
       errors.technology = "Please select a technology";
     }
-    if (!formData.startDate) {
+    if (!formData.startDate && formData.endDate) {
       errors.startDate = "Start date is required";
     }
-    if (!formData.endDate) {
+    if (!formData.endDate && formData.startDate) {
       errors.endDate = "End date is required";
     }
     if (
@@ -50,10 +52,38 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
     if (!validateForm()) return;
 
     setSubmitting(true);
-    await ApiService.post("/api/batch/create", formData);
-    setSubmitting(false);
-    onSuccess?.();
-    onClose();
+    try {
+      const res = await ApiService.post("/api/batch/create", formData);
+      if (res.message == "Batch Created!") {
+        toast.success("Batch Created Successfully!", {
+          icon: <ToastLogo />,
+          style: {
+            color: "#16a34a",
+          },
+          autoClose: 2000,
+        });
+      }
+
+    }
+    catch (err) {
+      toast.error("Something Went Wrong!", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#dc2626",
+        },
+        autoClose: 3000,
+      });
+    }
+    finally {
+      setSubmitting(false);
+      onClose();
+      setFormData({
+        name: "",
+        endDate: null,
+        startDate: null,
+        technology: ""
+      })
+    }
   };
 
   return (
