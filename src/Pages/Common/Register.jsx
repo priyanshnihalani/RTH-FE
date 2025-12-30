@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ApiService } from "../../Services/ApiService";
 import { useNavigate } from "react-router-dom";
 import BlockingLoader from "../../components/BlockingLoader";
+import Cookies from 'js-cookie'
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -50,23 +51,38 @@ export default function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (!validate()) return;
+
         try {
-            setLoading(true)
-            const response = await ApiService.post('/api/users/register', { ...formData, role: 'trainee' })
-            if (response.statusCode == 200) {
-                navigate("/waiting", { replace: true });
-            }
-            setLoading(false)
-        }
-        catch (error) {
-            console.log(error.response.data.message)
+            setLoading(true);
+
+            const res = await ApiService.post(
+                "/api/users/register",
+                { ...formData, role: "trainee" }
+            );
+
+            const { waitingToken } = res;
+
+            Cookies.set("waitingToken", waitingToken, {
+                expires: 1,       
+                sameSite: "lax",
+            });
+
+            navigate("/waiting", { replace: true });
+
+        } catch (error) {
+            console.log(
+                error?.response?.data?.message || "Registration failed"
+            );
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <>
-        {loading && <BlockingLoader />}
+            {loading && <BlockingLoader />}
             <div className="min-h-screen bg-gradient-to-br from-[#f5faff] via-white to-[#eef6ff] relative overflow-hidden">
 
                 {/* Top Bar */}

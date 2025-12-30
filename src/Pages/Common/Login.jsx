@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiService } from "../../Services/ApiService";
 import BlockingLoader from "../../components/BlockingLoader";
+import Cookies from "js-cookie";
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -50,10 +51,51 @@ const Login = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
-        await ApiService.post("/api/users/login", formData);
-        navigate("/", {replace: true})
+        e.preventDefault();
+
+        if (!validate()) return;
+
+        try {
+            setLoading(true);
+
+            const res = await ApiService.post(
+                "/api/users/login",
+                formData
+            );
+
+            const { accessToken, role, status } = res;
+
+            console.log(accessToken)
+            Cookies.set("accessToken", accessToken, {
+                expires: 1,       
+                sameSite: "lax",
+            });
+
+
+            if (status === "pending") {
+                navigate("/waiting", { replace: true });
+                return;
+            }
+
+            if (role === "admin") {
+                navigate("/admin/dashboard", { replace: true });
+            } else if (role === "trainer") {
+                navigate("/trainer/dashboard", { replace: true });
+            } else {
+                navigate("/trainee/dashboard", { replace: true });
+            }
+
+        } catch (err) {
+            setErrors({
+                password:
+                    err?.response?.data?.message ||
+                    "Invalid email or password",
+            });
+        } finally {
+            setLoading(false);
+        }
     };
+
 
     return (
         <>

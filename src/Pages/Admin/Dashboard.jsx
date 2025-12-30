@@ -11,6 +11,7 @@ import { ApiService } from "../../Services/ApiService";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import BlockingLoader from "../../components/BlockingLoader";
+import Cookies from "js-cookie"
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -21,7 +22,8 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(false)
 
     const handleLogout = async () => {
-        await ApiService.get("/api/users/logout", { withCredentials: true });
+        Cookies.remove('accessToken')
+        await ApiService.get("/api/users/logout");
         navigate("/login");
     };
 
