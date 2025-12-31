@@ -322,10 +322,8 @@ const Trainee = () => {
                             ?.label || "-"
                         )}
                       </TableCell>
-
-                                            <TableCell>{t.certificateIssued ? "Yes" : "No"}</TableCell>
-                                            <TableCell>{t.ndaSigned ? "Yes" : "No"}</TableCell>
-                                            <TableCell>{t.adharSubmitted ? "Yes" : "No"}</TableCell>
+                      <TableCell>{t.ndaSigned ? "Yes" : "No"}</TableCell>
+                      <TableCell>{t.adharSubmitted ? "Yes" : "No"}</TableCell>
 
                                             <TableCell>{t.remarks || "-"}</TableCell>
 
