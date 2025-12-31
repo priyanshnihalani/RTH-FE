@@ -2,6 +2,7 @@ import {
   Calendar,
   Layers,
   PenIcon,
+  Trash2,
   UserCheck,
   Users
 } from "lucide-react";
@@ -15,7 +16,8 @@ export default function BatchCard({
   trainer,
   traineeCount,
   setIsEditOpen,
-  setSelected
+  setSelected,
+  setIsDeleteOpen
 }) {
   return (
     <div
@@ -66,29 +68,55 @@ export default function BatchCard({
       </div>
 
       {/* -------- ACTIONS -------- */}
-      <button
-        onClick={() => {
-          setIsEditOpen(true);
-          setSelected({
-            id,
-            name,
-            technology,
-            startDate,
-            endDate,
-            trainer,
-            traineeCount
-          });
-        }}
-        className="
+      <div className="flex space-x-4">
+
+        <button
+          onClick={() => {
+            setIsEditOpen(true);
+            setSelected({
+              id,
+              name,
+              technology,
+              startDate,
+              endDate,
+              trainer,
+              traineeCount
+            });
+          }}
+          className="
           flex items-center gap-1
           text-sm font-medium
           text-orange-500
           hover:underline
         "
-      >
-        <PenIcon size={14} />
-        Edit
-      </button>
+        >
+          <PenIcon size={14} />
+          Edit
+        </button>
+        <button
+          onClick={() => {
+            setIsDeleteOpen(true);
+            setSelected({
+              id,
+              name,
+              technology,
+              startDate,
+              endDate,
+              trainer,
+              traineeCount
+            });
+          }}
+          className="
+          flex items-center gap-1
+          text-sm font-medium
+          text-orange-500
+          hover:underline
+        "
+        >
+          <Trash2 size={14} />
+          Delete
+        </button>
+      </div>
     </div>
   );
 }

@@ -134,7 +134,7 @@ const Trainee = () => {
     const saveTrainee = async (userId) => {
         setLoading(true);
         await ApiService.put(`/api/trainees/update/${userId}`, draft);
-        await fetchTrainees();     // 🔑 important
+        await fetchTrainees();     
         setEditingId(null);
         setDraft({});
         setLoading(false);

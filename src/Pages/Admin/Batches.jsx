@@ -6,10 +6,12 @@ import EditBatchModal from "./EditBatch";
 import { useEffect } from "react";
 import { ApiService } from "../../Services/ApiService";
 import BlockingLoader from "../../components/BlockingLoader";
+import DeleteBatchModal from "./DeleteBatch";
 
 const Batches = () => {
     const [openAdd, setOpenAdd] = useState(false);
     const [openEdit, setOpenEdit] = useState(false);
+    const [openDelete, setOpenDelete] = useState(false);
     const [selected, setSelected] = useState(null);
     const [batches, setBatches] = useState([])
     const [loading, setLoading] = useState(false)
@@ -51,6 +53,13 @@ const Batches = () => {
                     open={openEdit}
                     batch={selected}
                     onClose={() => setOpenEdit(false)}
+                    onSuccess={fetchBatches}
+                />
+
+                <DeleteBatchModal 
+                    open={openDelete}
+                    batch={selected}
+                    onClose={() => setOpenDelete(false)}
                     onSuccess={fetchBatches}
                 />
 
@@ -120,6 +129,7 @@ const Batches = () => {
                                 endDate={item.endDate}
                                 setIsEditOpen={setOpenEdit}
                                 setSelected={setSelected}
+                                setIsDeleteOpen={setOpenDelete}
                             />
                         ))
                     )}
