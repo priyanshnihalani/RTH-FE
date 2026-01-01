@@ -1,12 +1,13 @@
 import { LogOut, NotebookTabsIcon } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { ApiService } from "../Services/ApiService"
+import Cookie from "js-cookie"
 
 const Header = () => {
     const navigate = useNavigate()
-
     const handleLogout = async () => {
-        await ApiService.get("/api/users/logout", { withCredentials: true });
+        await ApiService.get("/api/users/logout");
+        Cookie.remove("accessToken")
         navigate("/login");
     };
 

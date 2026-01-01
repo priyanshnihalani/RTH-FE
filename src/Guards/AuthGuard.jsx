@@ -11,13 +11,15 @@ const AuthGuard = ({ children, requireAuth = true }) => {
   const checkAuth = async () => {
     setLoading(true)
     const accesscookies = Cookies.get("accessToken")
-    const waitingcookies = Cookies.get("accessToken")
+    const waitingcookies = Cookies.get("waitingToken")
 
     try {
-      await ApiService.post("/api/users/auth/me", {
+      const res = await ApiService.post("/api/users/auth/me", {
         accessToken: accesscookies
       });
-      Cookies.remove(waitingcookies)
+      if (res?.status) {
+        Cookies.remove(waitingcookies)
+      }
       setAuthorized("yes")
     }
     catch (err) {

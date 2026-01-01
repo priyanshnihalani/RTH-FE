@@ -22,8 +22,8 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(false)
 
     const handleLogout = async () => {
-        Cookies.remove('accessToken')
         await ApiService.get("/api/users/logout");
+        Cookies.remove('accessToken')
         navigate("/login");
     };
 

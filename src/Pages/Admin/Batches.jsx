@@ -1,5 +1,5 @@
 import { useState } from "react";
-import BatchCard from "./BarchComponents/BatchCard";
+import BatchCard from "./BatchCard";
 import { Plus } from "lucide-react";
 import AddBatchModal from "./AddBatch";
 import EditBatchModal from "./EditBatch";

@@ -7,7 +7,6 @@ const RoleIndex = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  console.log(user)
   const getUser = async () => {
     const accessToken = Cookies.get("accessToken");
 
