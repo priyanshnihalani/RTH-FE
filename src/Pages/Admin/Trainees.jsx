@@ -14,6 +14,7 @@ import {
   Button,
   Stack,
   IconButton,
+  Menu,
 } from "@mui/material";
 import { CalendarDays } from "lucide-react";
 import { ApiService } from "../../Services/ApiService";
@@ -69,11 +70,15 @@ const Trainee = () => {
     { value: "ReactNative", label: "ReactNative" },
   ];
 
-    /* ---------- FETCH ---------- */
-    const fetchTrainees = async () => {
-        setLoading(true);
+  const shift = [
+    { value: "true", lable: "Morning" },
+    { value: "false", lable: "Afternoon" },
+  ];
+  /* ---------- FETCH ---------- */
+  const fetchTrainees = async () => {
+    setLoading(true);
 
-        const res = await ApiService.get("/api/trainees/getAll");
+    const res = await ApiService.get("/api/trainees/getAll");
 
     const normalized = res
       .filter((t) => !t.softDelete)
@@ -85,25 +90,26 @@ const Trainee = () => {
         admissionStatus: t.registration?.admissionStatus ?? t.admissionStatus,
         technology: t.registration?.technology ?? t.technology,
         shift: t.registration?.shift ?? t.shift,
+        remarks2: t.registration?.remarks2 ?? t.remarks2,
         joinedDate: t.registration?.joinedDate ?? t.joinedDate,
+        certificateIssued:t.registration?.certificateIssued ?? t.certificateIssued,
         trainingStatus: t.registration?.trainingStatus ?? t.trainingStatus,
         remainingFees: t.registration?.remainingFee ?? 0,
       }));
 
-        setTrainees(normalized);
-        setLoading(false);
-    };
+    setTrainees(normalized);
+    setLoading(false);
+  };
 
+  const fetchBatches = async () => {
+    const res = await ApiService.get("/api/batch/getallbatchwithdetail");
+    setBatches(res);
+  };
 
-    const fetchBatches = async () => {
-        const res = await ApiService.get("/api/batch/getallbatchwithdetail");
-        setBatches(res);
-    };
-
-    useEffect(() => {
-        fetchTrainees();
-        fetchBatches();
-    }, []);
+  useEffect(() => {
+    fetchTrainees();
+    fetchBatches();
+  }, []);
 
   /* ---------- EDIT ---------- */
   const startEdit = (t) => {
@@ -120,43 +126,43 @@ const Trainee = () => {
       shift: t.shift || "",
       joinedDate: t.joinedDate || "",
       duration: t.duration || "",
-      certificateIssued: !!t.certificateIssued,
-      ndaSigned: !!t.ndaSigned,
+      certificateIssued: !!t.certificateIssued || "",
+      ndaSigned: !!t.ndaSigned || "",
       adharSubmitted: !!t.adharSubmitted,
-      remarks: t.remarks || "",
+      remarks2: t.remarks2 || "",
     });
   };
 
-    const updateDraft = (field, value) =>
-        setDraft(prev => ({ ...prev, [field]: value }));
+  const updateDraft = (field, value) =>
+    setDraft((prev) => ({ ...prev, [field]: value }));
 
-    /* ---------- SAVE ---------- */
-    const saveTrainee = async (userId) => {
-        setLoading(true);
-        await ApiService.put(`/api/trainees/update/${userId}`, draft);
-        await fetchTrainees();     
-        setEditingId(null);
-        setDraft({});
-        setLoading(false);
-    };
+  /* ---------- SAVE ---------- */
+  const saveTrainee = async (userId) => {
+    setLoading(true);
+    await ApiService.put(`/api/trainees/update/${userId}`, draft);
+    await fetchTrainees();
+    setEditingId(null);
+    setDraft({});
+    console.log("savedraft", draft);
+    setLoading(false);
+  };
 
-    /* ---------- DELETE ---------- */
-    const deleteTrainee = async (userId) => {
-        await ApiService.delete(`/api/trainees/remove/${userId}`);
-        fetchTrainees();
-    };
+  /* ---------- DELETE ---------- */
+  const deleteTrainee = async (userId) => {
+    await ApiService.delete(`/api/trainees/remove/${userId}`);
+    fetchTrainees();
+  };
 
-    return (
-        <>
-            {loading && <BlockingLoader />}
+  return (
+    <>
+      {loading && <BlockingLoader />}
 
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-8 space-y-8">
-
-                {/* HEADER */}
-                <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-6 shadow">
-                    <h1 className="text-3xl font-bold">Trainee Management</h1>
-                    <p className="text-sm text-gray-500">Manage trainee details</p>
-                </div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-8 space-y-8">
+        {/* HEADER */}
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-6 shadow">
+          <h1 className="text-3xl font-bold">Trainee Management</h1>
+          <p className="text-sm text-gray-500">Manage trainee details</p>
+        </div>
 
         {/* TABLE */}
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow overflow-hidden">
@@ -182,6 +188,7 @@ const Trainee = () => {
                     "Remarks",
                     "Notes",
                     "Actions",
+                    "Generate",
                   ].map((h) => (
                     <TableCell key={h} sx={{ color: "#fff", fontWeight: 600 }}>
                       {h}
@@ -190,49 +197,74 @@ const Trainee = () => {
                 </TableRow>
               </TableHead>
 
-                            <TableBody>
-                                {trainees.map(t => {
-                                    const isEdit = editingId === t.user_id;
+              <TableBody>
+                {trainees.map((t) => {
+                  const isEdit = editingId === t.user_id;
 
-                                    return (
-                                        <TableRow key={t.user_id} hover>
+                  return (
+                    <TableRow key={t.user_id} hover>
+                      <TableCell>
+                        {isEdit ? (
+                          <TextField
+                            size="small"
+                            value={draft.name}
+                            onChange={(e) =>
+                              updateDraft("name", e.target.value)
+                            }
+                          />
+                        ) : (
+                          t.name
+                        )}
+                      </TableCell>
 
-                                            <TableCell>
-                                                {isEdit
-                                                    ? <TextField size="small" value={draft.name} onChange={e => updateDraft("name", e.target.value)} />
-                                                    : t.name}
-                                            </TableCell>
+                      <TableCell>
+                        {isEdit ? (
+                          <TextField
+                            size="small"
+                            value={draft.education}
+                            onChange={(e) =>
+                              updateDraft("education", e.target.value)
+                            }
+                          />
+                        ) : (
+                          t.education || "-"
+                        )}
+                      </TableCell>
 
-                                            <TableCell>
-                                                {isEdit
-                                                    ? <TextField size="small" value={draft.education} onChange={e => updateDraft("education", e.target.value)} />
-                                                    : t.education || "-"}
-                                            </TableCell>
+                      <TableCell>
+                        {isEdit ? (
+                          <TextField
+                            size="small"
+                            value={draft.college}
+                            onChange={(e) =>
+                              updateDraft("college", e.target.value)
+                            }
+                          />
+                        ) : (
+                          t.college || "-"
+                        )}
+                      </TableCell>
 
-                                            <TableCell>
-                                                {isEdit
-                                                    ? <TextField size="small" value={draft.college} onChange={e => updateDraft("college", e.target.value)} />
-                                                    : t.college || "-"}
-                                            </TableCell>
-
-                                            <TableCell>
-                                                {isEdit ? (
-                                                    <Select
-                                                        multiple
-                                                        size="small"
-                                                        value={draft.batchIds}
-                                                        onChange={e => updateDraft("batchIds", e.target.value)}
-                                                    >
-                                                        {batches.map(b => (
-                                                            <MenuItem key={b.id} value={b.id}>
-                                                                {b.name}
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                ) : (
-                                                    t.batches?.map(b => b.name).join(", ") || "-"
-                                                )}
-                                            </TableCell>
+                      <TableCell>
+                        {isEdit ? (
+                          <Select
+                            multiple
+                            size="small"
+                            value={draft.batchIds}
+                            onChange={(e) =>
+                              updateDraft("batchIds", e.target.value)
+                            }
+                          >
+                            {batches.map((b) => (
+                              <MenuItem key={b.id} value={b.id}>
+                                {b.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          t.batches?.map((b) => b.name).join(", ") || "-"
+                        )}
+                      </TableCell>
 
                       <TableCell>
                         {isEdit ? (
@@ -249,25 +281,49 @@ const Trainee = () => {
                         )}
                       </TableCell>
 
-                                            <TableCell>
-                                                {isEdit ? (
-                                                    <Select size="small" value={draft.admissionStatus} onChange={e => updateDraft("admissionStatus", e.target.value)}>
-                                                        {admissionStatus.map(s => (
-                                                            <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                ) : admissionStatus.find(s => s.value === t.admissionStatus)?.label}
-                                            </TableCell>
+                      <TableCell>
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.admissionStatus}
+                            onChange={(e) =>
+                              updateDraft("admissionStatus", e.target.value)
+                            }
+                          >
+                            {admissionStatus.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          admissionStatus.find(
+                            (s) => s.value === t.admissionStatus
+                          )?.label
+                        )}
+                      </TableCell>
 
-                                            <TableCell>
-                                                {isEdit ? (
-                                                    <Select size="small" value={draft.trainingStatus} onChange={e => updateDraft("trainingStatus", e.target.value)}>
-                                                        {trainingStatus.map(s => (
-                                                            <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                ) : trainingStatus.find(s => s.value === t.trainingStatus)?.label}
-                                            </TableCell>
+                      <TableCell>
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.trainingStatus}
+                            onChange={(e) =>
+                              updateDraft("trainingStatus", e.target.value)
+                            }
+                          >
+                            {trainingStatus.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          trainingStatus.find(
+                            (s) => s.value === t.trainingStatus
+                          )?.label
+                        )}
+                      </TableCell>
 
                       <TableCell>
                         {isEdit ? (
@@ -290,18 +346,29 @@ const Trainee = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {t.certificateIssued ? "Yes" : "No"}
+                           {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.certificateIssued}
+                            onChange={(e) =>
+                              updateDraft("certificateIssued", e.target.value)
+                            }
+                          >
+                            {yesNo.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          yesNo.find((s) => s.value === t.certificateIssued)
+                            ?.label || "-"
+                        )}
                       </TableCell>
                       <TableCell>
-                        {t.shift === true
-                          ? "Morning"
-                          : t.shift === false
-                          ? "Afternoon"
-                          : "-"}
+                        {t.shift === true ? "Morning" : "Afternoon"}
                       </TableCell>
-                      <TableCell>
-                       {t.joinedDate || "-"}
-                      </TableCell>
+                      <TableCell>{t.joindate ||"-"}</TableCell>
                       <TableCell>
                         {isEdit ? (
                           <Select
@@ -322,45 +389,108 @@ const Trainee = () => {
                             ?.label || "-"
                         )}
                       </TableCell>
-                      <TableCell>{t.ndaSigned ? "Yes" : "No"}</TableCell>
+                      <TableCell>
+                        {t.ndaSigned ? "Yes" : "No"}
+                          {/* {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.ndaSigned}
+                            onChange={(e) =>
+                              updateDraft("ndaSigned", e.target.value)
+                            }
+                          >
+                            {yesNo.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          yesNo.find((s) => s.value === t.ndaSigned)
+                            ?.label || "-"
+                        )} */}
+                      </TableCell>
                       <TableCell>{t.adharSubmitted ? "Yes" : "No"}</TableCell>
+                      <TableCell>
+                        {isEdit ? (
+                          <TextField
+                            size="small"
+                            value={draft.remarks2 || ""}
+                            onChange={(e) =>
+                              updateDraft("remarks2", e.target.value)
+                            }
+                          />
+                        ) : (
+                          t.remarks2 || "-"
+                        )}
+                      </TableCell>
 
-                                            <TableCell>{t.remarks || "-"}</TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          onClick={() => navigate(`/admin/notes/${t.user_id}`)}
+                        >
+                          <CalendarDays size={18} />
+                        </IconButton>
+                      </TableCell>
 
-                                            <TableCell align="center">
-                                                <IconButton onClick={() => navigate(`/admin/notes/${t.user_id}`)}>
-                                                    <CalendarDays size={18} />
-                                                </IconButton>
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <Stack direction="row" spacing={1}>
-                                                    {isEdit ? (
-                                                        <Button size="small" variant="contained" onClick={() => saveTrainee(t.user_id)}>
-                                                            Save
-                                                        </Button>
-                                                    ) : (
-                                                        <Button size="small" variant="outlined" onClick={() => startEdit(t)}>
-                                                            Edit
-                                                        </Button>
-                                                    )}
-                                                    <Button size="small" variant="outlined" color="error" onClick={() => deleteTrainee(t.user_id)}>
-                                                        Delete
-                                                    </Button>
-                                                </Stack>
-                                            </TableCell>
-
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-
-                        </Table>
-                    </TableContainer>
-                </div>
-            </div>
-        </>
-    );
+                      <TableCell>
+                        <Stack direction="row" spacing={1}>
+                          {isEdit ? (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => saveTrainee(t.user_id)}
+                            >
+                              Save
+                            </Button>
+                          ) : (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => startEdit(t)}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="error"
+                            onClick={() => deleteTrainee(t.user_id)}
+                          >
+                            Delete
+                          </Button>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={1}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            // onClick={() => startEdit(t)}
+                          >
+                            Generatecletificate
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="error"
+                            // onClick={() => deleteTrainee(t.user_id)}
+                          >
+                            GenerrateOfferLater
+                          </Button>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
+      </div>
+    </>
+  );
 };
 
 export default Trainee;
