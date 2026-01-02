@@ -58,6 +58,9 @@ const Trainee = () => {
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({});
   const [loading, setLoading] = useState(false);
+  const [openCertMenu, setOpenCertMenu] = useState(null);
+  const [openCertModal, setOpenCertModal] = useState(false);
+  const [selectedTrainee, setSelectedTrainee] = useState(null);
 
   const technology = [
     { value: "Frontend Design", label: "Frontend Design" },
@@ -90,9 +93,9 @@ const Trainee = () => {
         admissionStatus: t.registration?.admissionStatus ?? t.admissionStatus,
         technology: t.registration?.technology ?? t.technology,
         shift: t.registration?.shift ?? t.shift,
+        ndaSigned: t.registration?.ndaSigned ?? t.ndaSigned,
         remarks2: t.registration?.remarks2 ?? t.remarks2,
         joinedDate: t.registration?.joinedDate ?? t.joinedDate,
-        certificateIssued:t.registration?.certificateIssued ?? t.certificateIssued,
         trainingStatus: t.registration?.trainingStatus ?? t.trainingStatus,
         remainingFees: t.registration?.remainingFee ?? 0,
       }));
@@ -126,11 +129,12 @@ const Trainee = () => {
       shift: t.shift || "",
       joinedDate: t.joinedDate || "",
       duration: t.duration || "",
-      certificateIssued: !!t.certificateIssued || "",
-      ndaSigned: !!t.ndaSigned || "",
+      certificateIssued: t.certificateIssued,
+      ndaSigned: !!t.ndaSigned,
       adharSubmitted: !!t.adharSubmitted,
       remarks2: t.remarks2 || "",
     });
+    console.log("editdraft", draft);
   };
 
   const updateDraft = (field, value) =>
@@ -346,29 +350,12 @@ const Trainee = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                           {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.certificateIssued}
-                            onChange={(e) =>
-                              updateDraft("certificateIssued", e.target.value)
-                            }
-                          >
-                            {yesNo.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          yesNo.find((s) => s.value === t.certificateIssued)
-                            ?.label || "-"
-                        )}
+                        {t.certificateIssued ? "Yes" : "No"}
                       </TableCell>
                       <TableCell>
                         {t.shift === true ? "Morning" : "Afternoon"}
                       </TableCell>
-                      <TableCell>{t.joindate ||"-"}</TableCell>
+                      <TableCell>{t.joindate || "-"}</TableCell>
                       <TableCell>
                         {isEdit ? (
                           <Select
@@ -390,13 +377,12 @@ const Trainee = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {t.ndaSigned ? "Yes" : "No"}
-                          {/* {isEdit ? (
+                        {isEdit ? (
                           <Select
                             size="small"
                             value={draft.ndaSigned}
                             onChange={(e) =>
-                              updateDraft("ndaSigned", e.target.value)
+                              updateDraft("ndasigned", e.target.value)
                             }
                           >
                             {yesNo.map((s) => (
@@ -408,7 +394,7 @@ const Trainee = () => {
                         ) : (
                           yesNo.find((s) => s.value === t.ndaSigned)
                             ?.label || "-"
-                        )} */}
+                        )}
                       </TableCell>
                       <TableCell>{t.adharSubmitted ? "Yes" : "No"}</TableCell>
                       <TableCell>
