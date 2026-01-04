@@ -20,35 +20,10 @@ import { CalendarDays } from "lucide-react";
 import { ApiService } from "../../Services/ApiService";
 import BlockingLoader from "../../components/BlockingLoader";
 import { Label } from "@mui/icons-material";
-import DatePicker from "react-datepicker";
-import dayjs from "dayjs";
+import Modal from "../../components/Modal";
+import ConstantService from "../../Services/ConstantService";
 
-/* ---------- CONSTANTS ---------- */
-const admissionStatus = [
-  { label: "Pending", value: "pending" },
-  { label: "Approved", value: "approved" },
-  { label: "Rejected", value: "rejected" },
-];
 
-const trainingStatus = [
-  { label: "Not Started", value: "not_started" },
-  { label: "Ongoing", value: "ongoing" },
-  { label: "Completed", value: "completed" },
-  { label: "Dropped", value: "dropped" },
-];
-
-const yesNo = [
-  { label: "Yes", value: true },
-  { label: "No", value: false },
-];
-
-const duration = [
-  { label: "15 Days", value: "15 Days" },
-  { label: "30 Days", value: "30 Days" },
-  { label: "45 Days", value: "45 Days" },
-  { label: "90 Days", value: "90 Days" },
-  { label: "180 Days", value: "180 Days" },
-];
 
 const Trainee = () => {
   const navigate = useNavigate();
@@ -58,25 +33,22 @@ const Trainee = () => {
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({});
   const [loading, setLoading] = useState(false);
-  const [openCertMenu, setOpenCertMenu] = useState(null);
-  const [openCertModal, setOpenCertModal] = useState(false);
+  const [openGenerateModal, setOpenGenerateModal] = useState(false);
+  const [generateType, setGenerateType] = useState(""); // "certificate" | "offer"
   const [selectedTrainee, setSelectedTrainee] = useState(null);
+const [offerForm, setOfferForm] = useState({
+  joinedAt: "",
+  name: "",
+  firstName: "",
+  duration: "",
+  technology: "",
+  compensation: "",
+  signerName: "",
+  signerDesignation: "",
+});
 
-  const technology = [
-    { value: "Frontend Design", label: "Frontend Design" },
-    { value: "node", label: "Node.js" },
-    { value: "QA", label: "QA" },
-    { value: "Devops", label: "Devops" },
-    { value: "UI/UX", label: "UI/UX" },
-    { value: "Java", lable: "Java" },
-    { value: "react", label: "React" },
-    { value: "ReactNative", label: "ReactNative" },
-  ];
+const [errors, setErrors] = useState({});
 
-  const shift = [
-    { value: "true", lable: "Morning" },
-    { value: "false", lable: "Afternoon" },
-  ];
   /* ---------- FETCH ---------- */
   const fetchTrainees = async () => {
     setLoading(true);
@@ -96,6 +68,8 @@ const Trainee = () => {
         ndaSigned: t.registration?.ndaSigned ?? t.ndaSigned,
         remarks2: t.registration?.remarks2 ?? t.remarks2,
         joinedDate: t.registration?.joinedDate ?? t.joinedDate,
+        certificateIssued:t.registration?.certificateIssued ?? t.certificateIssued,
+        adharSubmitted: t.registration?.adharSubmitted ?? t.adharSubmitted,
         trainingStatus: t.registration?.trainingStatus ?? t.trainingStatus,
         remainingFees: t.registration?.remainingFee ?? 0,
       }));
@@ -126,15 +100,14 @@ const Trainee = () => {
       admissionStatus: t.admissionStatus || "pending",
       trainingStatus: t.trainingStatus || "not_started",
       technology: t.technology || "",
-      shift: t.shift || "",
+      shift: t.shift,
       joinedDate: t.joinedDate || "",
       duration: t.duration || "",
-      certificateIssued: t.certificateIssued,
+      certificateIssued: !!t.certificateIssued,
       ndaSigned: !!t.ndaSigned,
       adharSubmitted: !!t.adharSubmitted,
       remarks2: t.remarks2 || "",
     });
-    console.log("editdraft", draft);
   };
 
   const updateDraft = (field, value) =>
@@ -147,7 +120,6 @@ const Trainee = () => {
     await fetchTrainees();
     setEditingId(null);
     setDraft({});
-    console.log("savedraft", draft);
     setLoading(false);
   };
 
@@ -156,6 +128,11 @@ const Trainee = () => {
     await ApiService.delete(`/api/trainees/remove/${userId}`);
     fetchTrainees();
   };
+
+ const handleChange = (key, value) => {
+  setOfferForm((prev) => ({ ...prev, [key]: value }));
+  setErrors((prev) => ({ ...prev, [key]: "" }));
+};
 
   return (
     <>
@@ -294,16 +271,16 @@ const Trainee = () => {
                               updateDraft("admissionStatus", e.target.value)
                             }
                           >
-                            {admissionStatus.map((s) => (
+                            {ConstantService.AdmissionStatus.map((s) => (
                               <MenuItem key={s.value} value={s.value}>
                                 {s.label}
                               </MenuItem>
                             ))}
                           </Select>
                         ) : (
-                          admissionStatus.find(
+                          ConstantService.AdmissionStatus.find(
                             (s) => s.value === t.admissionStatus
-                          )?.label
+                          )?.label || "-"
                         )}
                       </TableCell>
 
@@ -316,16 +293,16 @@ const Trainee = () => {
                               updateDraft("trainingStatus", e.target.value)
                             }
                           >
-                            {trainingStatus.map((s) => (
+                            {ConstantService.TrainingStatus.map((s) => (
                               <MenuItem key={s.value} value={s.value}>
                                 {s.label}
                               </MenuItem>
                             ))}
                           </Select>
                         ) : (
-                          trainingStatus.find(
+                          ConstantService.TrainingStatus.find(
                             (s) => s.value === t.trainingStatus
-                          )?.label
+                          )?.label || "-"
                         )}
                       </TableCell>
 
@@ -338,24 +315,76 @@ const Trainee = () => {
                               updateDraft("duration", e.target.value)
                             }
                           >
-                            {duration.map((d) => (
+                            {ConstantService.Duration.map((d) => (
                               <MenuItem key={d.value} value={d.value}>
                                 {d.label}
                               </MenuItem>
                             ))}
                           </Select>
+                        ) : ConstantService.Duration.find((d) => d.value === t.duration)
+                            ?.label || t.duration ? (
+                          "Yes"
                         ) : (
-                          duration.find((d) => d.value === t.duration)?.label ||
-                          "-"
+                          "No"
                         )}
                       </TableCell>
                       <TableCell>
-                        {t.certificateIssued ? "Yes" : "No"}
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.certificateIssued}
+                            onChange={(e) =>
+                              updateDraft("certificateIssued", e.target.value)
+                            }
+                          >
+                            {ConstantService.YesNo.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : ConstantService.YesNo.find((s) => s.value === t.certificateIssued)
+                            ?.label || t.certificateIssued ? (
+                          "yes"
+                        ) : (
+                          "No"
+                        )}
                       </TableCell>
                       <TableCell>
-                        {t.shift === true ? "Morning" : "Afternoon"}
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.shift}
+                            onChange={(e) =>
+                              updateDraft("shift", e.target.value)
+                            }
+                          >
+                            {ConstantService.Shift.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          ConstantService.Shift.find((s) => s.value === t.shift)?.label || "-"
+                        )}
                       </TableCell>
-                      <TableCell>{t.joindate || "-"}</TableCell>
+                      <TableCell>
+                        {isEdit ? (
+                          <input
+                            type="date"
+                            value={draft.joinedDate || ""}
+                            onChange={(e) =>
+                              updateDraft("joinedDate", e.target.value)
+                            }
+                            className="px-2 py-1 border rounded-md text-sm"
+                          />
+                        ) : t.joinedDate ? (
+                          dayjs(t.joinedDate).format("DD-MM-YYYY")
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
                       <TableCell>
                         {isEdit ? (
                           <Select
@@ -365,14 +394,14 @@ const Trainee = () => {
                               updateDraft("technology", e.target.value)
                             }
                           >
-                            {technology.map((s) => (
+                            {ConstantService.Technologys.map((s) => (
                               <MenuItem key={s.value} value={s.value}>
                                 {s.label}
                               </MenuItem>
                             ))}
                           </Select>
                         ) : (
-                          technology.find((s) => s.value === t.technology)
+                          ConstantService.Technologys.find((s) => s.value === t.technology)
                             ?.label || "-"
                         )}
                       </TableCell>
@@ -382,21 +411,44 @@ const Trainee = () => {
                             size="small"
                             value={draft.ndaSigned}
                             onChange={(e) =>
-                              updateDraft("ndasigned", e.target.value)
+                              updateDraft("ndaSigned", e.target.value)
                             }
                           >
-                            {yesNo.map((s) => (
+                            {ConstantService.YesNo.map((s) => (
                               <MenuItem key={s.value} value={s.value}>
                                 {s.label}
                               </MenuItem>
                             ))}
                           </Select>
+                        ) : ConstantService.YesNo.find((s) => s.value === t.ndaSigned)?.label ||
+                          t.ndaSigned ? (
+                          "Yes"
                         ) : (
-                          yesNo.find((s) => s.value === t.ndaSigned)
-                            ?.label || "-"
+                          "No"
                         )}
                       </TableCell>
-                      <TableCell>{t.adharSubmitted ? "Yes" : "No"}</TableCell>
+                      <TableCell>
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.adharSubmitted}
+                            onChange={(e) =>
+                              updateDraft("adharSubmitted", e.target.value)
+                            }
+                          >
+                            {ConstantService.YesNo.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : ConstantService.YesNo.find((s) => s.value === t.adharSubmitted)
+                            ?.label || t.adharSubmitted ? (
+                          "Yes"
+                        ) : (
+                          "No"
+                        )}
+                      </TableCell>
                       <TableCell>
                         {isEdit ? (
                           <TextField
@@ -453,17 +505,57 @@ const Trainee = () => {
                           <Button
                             size="small"
                             variant="contained"
-                            // onClick={() => startEdit(t)}
+                            sx={{
+                              backgroundColor: "#FB8924",
+                              textTransform: "none",
+                              fontSize: "12px",
+                              minWidth: 95,
+                              height: 30,
+                              "&:hover": {
+                                backgroundColor: "#f57c00",
+                              },
+                            }}
+                            // onClick={() => {
+                            //   setGenerateType("certificate");
+                            //   setSelectedTrainee(t);
+                            //   setOpenGenerateModal(true);
+                            // }}
                           >
-                            Generatecletificate
+                            Certificate
                           </Button>
+
                           <Button
                             size="small"
                             variant="contained"
-                            color="error"
-                            // onClick={() => deleteTrainee(t.user_id)}
+                            sx={{
+                              backgroundColor: "#FB8924",
+                              textTransform: "none",
+                              fontSize: "12px",
+                              minWidth: 95,
+                              height: 30,
+                              "&:hover": {
+                                backgroundColor: "#f57c00",
+                              },
+                            }}
+                            onClick={() => {
+                              setGenerateType("offer");
+                              setSelectedTrainee(t);
+
+                              setOfferForm({
+                                joinedAt: t.joinedDate || "",
+                                name: t.name || "",
+                                firstName: t.name?.split(" ")[0] || "",
+                                duration: t.duration || "",
+                                technology: t.technology || "",
+                                compensation: "",
+                                signerName: "",
+                                signerDesignation: "",
+                              });
+
+                              setOpenGenerateModal(true);
+                            }}
                           >
-                            GenerrateOfferLater
+                            Offer Letter
                           </Button>
                         </Stack>
                       </TableCell>
@@ -475,6 +567,60 @@ const Trainee = () => {
           </TableContainer>
         </div>
       </div>
+    <Modal
+  open={openGenerateModal}
+  onClose={() => setOpenGenerateModal(false)}
+  title="Generate OfferLetter"
+>
+  <div className="space-y-6">
+    <div className="grid grid-cols-2 gap-4">
+      {[
+        { key: "joinedAt", label: "Joining Date", type: "date" },
+        { key: "name", label: "Name" },
+        { key: "firstName", label: "First Name" },
+        { key: "duration", label: "Duration" },
+        { key: "technology", label: "Technology" },
+        { key: "compensation", label: "Compensation" },
+        { key: "signerName", label: "Signer Name" },
+        { key: "signerDesignation", label: "Signer Designation" },
+      ].map(({ key, label, type }) => (
+        <div key={key}>
+          <label className="block text-sm font-semibold text-gray-600 mb-1">
+            {label}
+          </label>
+          <input
+            type={type || "text"}
+            value={offerForm[key]}
+            onChange={(e) => handleChange(key, e.target.value)}
+            className={`w-full px-4 py-2 rounded-xl border ${
+              errors[key] ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors[key] && (
+            <p className="text-xs text-red-500 mt-1">{errors[key]}</p>
+          )}
+        </div>
+      ))}
+    </div>
+
+    {/* FOOTER */}
+    <div className="flex justify-end gap-3 pt-4">
+      <button
+        onClick={() => setOpenGenerateModal(false)}
+        className="px-5 py-2 rounded-xl border text-gray-600 hover:bg-gray-100"
+      >
+        Cancel
+      </button>
+
+      <button
+        // onClick={handleGenerateOfferLetter}
+        className="px-6 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600 shadow"
+      >
+        Save
+      </button>
+    </div>
+  </div>
+</Modal>
     </>
   );
 };

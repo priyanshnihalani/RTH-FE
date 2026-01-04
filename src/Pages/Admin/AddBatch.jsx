@@ -4,6 +4,7 @@ import Modal from "../../components/Modal";
 import "react-toastify/dist/ReactToastify.css";
 import { toast, ToastContainer } from "react-toastify";
 import ToastLogo from "../../components/ToastLogo";
+import ConstantService from "../../Services/ConstantService";
 const AddBatchModal = ({ open, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -126,7 +127,7 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
             </label>
             <select
               name="technology"
-              value={formData.technology}
+              value={formData.technology }
               onChange={handleChange}
               className={`w-full rounded-xl border px-4 py-3 text-sm
                 ${errors.technology ? "border-red-400" : "border-slate-300"}
@@ -134,9 +135,11 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
                 focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40 transition`}
             >
               <option value="">Select technology</option>
-              <option value="MERN">MERN</option>
-              <option value="Java">Java</option>
-              <option value="Python">Python</option>
+              {ConstantService.Technologys.map((tech) => (
+                <option key={tech.value} value={tech.value}>
+                  {tech.label}
+                </option>
+              ))}
             </select>
             {errors.technology && (
               <p className="text-xs text-red-500">{errors.technology}</p>

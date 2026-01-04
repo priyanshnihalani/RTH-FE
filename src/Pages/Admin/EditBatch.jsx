@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ApiService } from "../../Services/ApiService";
 import Modal from "../../components/Modal";
+import ConstantService from "../../Services/ConstantService";
 
 const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -121,9 +122,11 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
                 focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40 transition`}
             >
               <option value="">Select technology</option>
-              <option value="MERN">MERN</option>
-              <option value="Java">Java</option>
-              <option value="Python">Python</option>
+                {ConstantService.Technologys.map((tech) => (
+                <option key={tech.value} value={tech.value}>
+                  {tech.label}
+                </option>
+              ))}
             </select>
             {errors.technology && (
               <p className="text-xs text-red-500">{errors.technology}</p>
