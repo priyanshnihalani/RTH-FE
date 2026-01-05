@@ -68,11 +68,12 @@ const Trainee = () => {
         shift: t.registration?.shift ?? t.shift,
         ndaSigned: t.registration?.ndaSigned ?? t.ndaSigned,
         remarks2: t.registration?.remarks2 ?? t.remarks2,
-        joinedDate:t.registration?.joinedDate?? t.joinedDate,
-        certificateIssued:t.registration?.certificateIssued ?? t.certificateIssued,
+        joinedDate: t.registration?.joinedDate ?? t.joinedDate,
+        certificateIssued: t.registration?.certificateIssued ?? t.certificateIssued,
         adharSubmitted: t.registration?.adharSubmitted ?? t.adharSubmitted,
         trainingStatus: t.registration?.trainingStatus ?? t.trainingStatus,
-        remainingFees: t.registration?.remainingFee ?? 0,
+        remainingFee: t.registration?.remainingFee ?? 0,
+        wantToBoard: t.registration?.wantToBoard,
       }));
 
     setTrainees(normalized);
@@ -96,14 +97,15 @@ const Trainee = () => {
       name: t.name || "",
       education: t.education || "",
       college: t.college || "",
-      batchIds: t.batchIds || [],
-      remainingFees: t.remainingFees ?? 0,
+      batches: t.batches || [],
+      remainingFee: t.remainingFee ?? 0,
       admissionStatus: t.admissionStatus || "pending",
       trainingStatus: t.trainingStatus || "not_started",
       technology: t.technology || "",
       shift: !!t.shift || "",
       joinedDate: t.joinedDate || "",
       duration: t.duration || "",
+      wantToBoard: t.wantToBoard,
       certificateIssued: !!t.certificateIssued,
       ndaSigned: !!t.ndaSigned,
       adharSubmitted: !!t.adharSubmitted,
@@ -113,7 +115,7 @@ const Trainee = () => {
 
   const updateDraft = (field, value) =>
     setDraft((prev) => ({ ...prev, [field]: value }));
-  console.log("draft",draft)
+  console.log("draft", draft)
 
   /* ---------- SAVE ---------- */
   const saveTrainee = async (userId) => {
@@ -124,7 +126,7 @@ const Trainee = () => {
     setDraft({});
     setLoading(false);
   };
-   console.log("draft" ,draft)
+  console.log("draft", draft)
 
   /* ---------- DELETE ---------- */
   const deleteTrainee = async (userId) => {
@@ -138,58 +140,54 @@ const Trainee = () => {
   };
 
   const validateOfferForm = () => {
-  const errors = {};
+    const errors = {};
 
-  if (!offerForm.joinedAt) {
-    errors.joinedAt = "Joining date is required";
-  }
+    if (!offerForm.joinedAt) {
+      errors.joinedAt = "Joining date is required";
+    }
 
-  if (!offerForm.name || offerForm.name.trim().length < 3) {
-    errors.name = "Name must be at least 3 characters";
-  }
+    if (!offerForm.name || offerForm.name.trim().length < 3) {
+      errors.name = "Name must be at least 3 characters";
+    }
 
-  if (!offerForm.firstName) {
-    errors.firstName = "First name is required";
-  }
+    if (!offerForm.firstName) {
+      errors.firstName = "First name is required";
+    }
 
-  if (!offerForm.duration) {
-    errors.duration = "Duration is required";
-  }
+    if (!offerForm.duration) {
+      errors.duration = "Duration is required";
+    }
 
-  if (!offerForm.technology) {
-    errors.technology = "Technology is required";
-  }
+    if (!offerForm.technology) {
+      errors.technology = "Technology is required";
+    }
 
-  if (!offerForm.compensation) {
-    errors.compensation = "Compensation is required";
-  }
+    if (!offerForm.compensation) {
+      errors.compensation = "Compensation is required";
+    }
 
-  if (!offerForm.signerName) {
-    errors.signerName = "Signer name is required";
-  }
+    if (!offerForm.signerName) {
+      errors.signerName = "Signer name is required";
+    }
 
-  if (!offerForm.signerDesignation) {
-    errors.signerDesignation = "Signer designation is required";
-  }
+    if (!offerForm.signerDesignation) {
+      errors.signerDesignation = "Signer designation is required";
+    }
 
-  if (!offerForm.contactPerson) {
-    errors.contactPerson = "Contact person is required";
-  }
+    if (!offerForm.contactPerson) {
+      errors.contactPerson = "Contact person is required";
+    }
 
-  // ✅ MOBILE NUMBER VALIDATION
-  const mobile = offerForm.signerMobile?.toString().trim();
+    const mobile = offerForm.signerMobile?.toString().trim();
 
-  if (!mobile) {
-    errors.signerMobile = "Mobile number is required";
-  } else if (!/^[0-9]{10}$/.test(mobile)) {
-    errors.signerMobile = "Enter valid 10-digit mobile number";
-  }
-
-
-
-  setErrors(errors);
-  return Object.keys(errors).length === 0;
-};
+    if (!mobile) {
+      errors.signerMobile = "Mobile number is required";
+    } else if (!/^[0-9]{10}$/.test(mobile)) {
+      errors.signerMobile = "Enter valid 10-digit mobile number";
+    }
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleGenerateOfferLetter = async () => {
     if (!validateOfferForm()) return;
@@ -240,6 +238,7 @@ const Trainee = () => {
                     "Duration",
                     "Certificate",
                     "Shift",
+                    "WantToBoard",
                     "JoiningDate",
                     "Technologys",
                     "NDA",
@@ -400,8 +399,8 @@ const Trainee = () => {
                             ))}
                           </Select>
                         ) : ConstantService.Duration.find(
-                            (d) => d.value === t.duration
-                          )?.label || t.duration ? (
+                          (d) => d.value === t.duration
+                        )?.label || t.duration ? (
                           "Yes"
                         ) : (
                           "No"
@@ -423,8 +422,8 @@ const Trainee = () => {
                             ))}
                           </Select>
                         ) : ConstantService.YesNo.find(
-                            (s) => s.value === t.certificateIssued
-                          )?.label || t.certificateIssued ? (
+                          (s) => s.value === t.certificateIssued
+                        )?.label || t.certificateIssued ? (
                           "yes"
                         ) : (
                           "No"
@@ -448,6 +447,26 @@ const Trainee = () => {
                         ) : (
                           ConstantService.Shift.find((s) => s.value === t.shift)
                             ?.label || "-"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {isEdit ? (
+                          <Select
+                            disabled={draft.trainingStatus != "completed"}
+                            size="small"
+                            value={draft.wantToBoard}
+                            onChange={(e) =>
+                              updateDraft("wantToBoard", e.target.value)
+                            }
+                          >
+                            {ConstantService.YesNo.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          ConstantService.YesNo.find((s) => s.value === t.wantToBoard)?.label || "-"
                         )}
                       </TableCell>
                       <TableCell>
@@ -508,8 +527,8 @@ const Trainee = () => {
                             ))}
                           </Select>
                         ) : ConstantService.YesNo.find(
-                            (s) => s.value === t.ndaSigned
-                          )?.label || t.ndaSigned ? (
+                          (s) => s.value === t.ndaSigned
+                        )?.label || t.ndaSigned ? (
                           "Yes"
                         ) : (
                           "No"
@@ -531,8 +550,8 @@ const Trainee = () => {
                             ))}
                           </Select>
                         ) : ConstantService.YesNo.find(
-                            (s) => s.value === t.adharSubmitted
-                          )?.label || t.adharSubmitted ? (
+                          (s) => s.value === t.adharSubmitted
+                        )?.label || t.adharSubmitted ? (
                           "Yes"
                         ) : (
                           "No"
@@ -556,7 +575,7 @@ const Trainee = () => {
                         <IconButton
                           onClick={() => navigate(`/admin/notes/${t.user_id}`)}
                         >
-                          <CalendarDays size={18} />
+                          <CalendarDays size={18} className="text-primary" />
                         </IconButton>
                       </TableCell>
 
@@ -592,6 +611,7 @@ const Trainee = () => {
                       <TableCell>
                         <Stack direction="row" spacing={1}>
                           <Button
+                            disabled={t?.trainingStatus !== "completed"}
                             size="small"
                             variant="contained"
                             sx={{
@@ -604,16 +624,17 @@ const Trainee = () => {
                                 backgroundColor: "#f57c00",
                               },
                             }}
-                            // onClick={() => {
-                            //   setGenerateType("certificate");
-                            //   setSelectedTrainee(t);
-                            //   setOpenGenerateModal(true);
-                            // }}
+                          // onClick={() => {
+                          //   setGenerateType("certificate");
+                          //   setSelectedTrainee(t);
+                          //   setOpenGenerateModal(true);
+                          // }}
                           >
                             Certificate
                           </Button>
 
                           <Button
+                            disabled={t.trainingStatus !== "completed"}
                             size="small"
                             variant="contained"
                             sx={{
@@ -659,94 +680,94 @@ const Trainee = () => {
         </div>
       </div>
       <Modal
-  open={openGenerateModal}
-  onClose={() => setOpenGenerateModal(false)}
-  title="Generate Offer Letter"
->
-  <form
-    onSubmit={(e) => {
-      e.preventDefault();
-      handleGenerateOfferLetter();
-    }}
-    className="space-y-6 animate-in fade-in zoom-in-95 duration-200"
-  >
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        {[
-          { key: "joinedAt", label: "Joining Date", type: "date" },
-          { key: "name", label: "Name" },
-          { key: "firstName", label: "First Name" },
-          { key: "duration", label: "Duration" },
-          { key: "technology", label: "Technology" },
-          { key: "compensation", label: "Compensation" },
-        ].map(({ key, label, type }) => (
-          <div key={key} className="space-y-1">
-            <label className="text-xs font-medium text-slate-600">
-              {label}
-            </label>
-            <input
-              type={type || "text"}
-              value={offerForm[key] || ""}
-              onChange={(e) => handleChange(key, e.target.value)}
-              className={`w-full rounded-xl border px-4 py-3 text-sm
-                ${errors[key] ? "border-red-400" : "border-slate-300"}
-                bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-            />
-            {errors[key] && (
-              <p className="text-xs text-red-500">{errors[key]}</p>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        {[
-          { key: "signerName", label: "Signer Name" },
-          { key: "signerDesignation", label: "Signer Designation" },
-          { key: "contactPerson", label: "Contact Person" },
-          { key: "signerMobile", label: "Signer Mobile No" },
-        ].map(({ key, label }) => (
-          <div key={key} className="space-y-1">
-            <label className="text-xs font-medium text-slate-600">
-              {label}
-            </label>
-            <input
-              value={offerForm[key] || ""}
-              onChange={(e) => handleChange(key, e.target.value)}
-              className={`w-full rounded-xl border px-4 py-3 text-sm
-                ${errors[key] ? "border-red-400" : "border-slate-300"}
-                bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-            />
-            {errors[key] && (
-              <p className="text-xs text-red-500">{errors[key]}</p>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* -------- ACTIONS -------- */}
-    <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
-      <button
-        type="button"
-        onClick={() => setOpenGenerateModal(false)}
-        className="px-4 py-2 text-sm rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100"
+        open={openGenerateModal}
+        onClose={() => setOpenGenerateModal(false)}
+        title="Generate Offer Letter"
       >
-        Cancel
-      </button>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleGenerateOfferLetter();
+          }}
+          className="space-y-6 animate-in fade-in zoom-in-95 duration-200"
+        >
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { key: "joinedAt", label: "Joining Date", type: "date" },
+                { key: "name", label: "Name" },
+                { key: "firstName", label: "First Name" },
+                { key: "duration", label: "Duration" },
+                { key: "technology", label: "Technology" },
+                { key: "compensation", label: "Compensation" },
+              ].map(({ key, label, type }) => (
+                <div key={key} className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    {label}
+                  </label>
+                  <input
+                    type={type || "text"}
+                    value={offerForm[key] || ""}
+                    onChange={(e) => handleChange(key, e.target.value)}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
+                ${errors[key] ? "border-red-400" : "border-slate-300"}
+                bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                  />
+                  {errors[key] && (
+                    <p className="text-xs text-red-500">{errors[key]}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { key: "signerName", label: "Signer Name" },
+                { key: "signerDesignation", label: "Signer Designation" },
+                { key: "contactPerson", label: "Contact Person" },
+                { key: "signerMobile", label: "Signer Mobile No" },
+              ].map(({ key, label }) => (
+                <div key={key} className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    {label}
+                  </label>
+                  <input
+                    value={offerForm[key] || ""}
+                    onChange={(e) => handleChange(key, e.target.value)}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
+                ${errors[key] ? "border-red-400" : "border-slate-300"}
+                bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                  />
+                  {errors[key] && (
+                    <p className="text-xs text-red-500">{errors[key]}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
 
-      <button
-        type="submit"
-        className="px-6 py-2 text-sm font-semibold rounded-xl
+          {/* -------- ACTIONS -------- */}
+          <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={() => setOpenGenerateModal(false)}
+              className="px-4 py-2 text-sm rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="px-6 py-2 text-sm font-semibold rounded-xl
         bg-gradient-to-r from-[#FB8924] to-[#f27f1c]
         text-white shadow-md active:scale-95"
-      >
-        Save
-      </button>
-    </div>
-  </form>
-</Modal>
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </Modal>
 
     </>
   );

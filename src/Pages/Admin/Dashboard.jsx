@@ -180,15 +180,6 @@ export default function Dashboard() {
                                 Latest 5 trainee applications
                             </p>
                         </div>
-
-                        <button className="
-            flex items-center gap-1
-            text-sm font-medium text-orange-500
-            hover:underline
-          ">
-                            View all
-                            <ArrowRight size={14} />
-                        </button>
                     </div>
 
                     <div className="space-y-2 min-h-65 flex flex-col justify-center">

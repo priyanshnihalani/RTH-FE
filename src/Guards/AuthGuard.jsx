@@ -18,16 +18,23 @@ const AuthGuard = ({ children, requireAuth = true }) => {
         accessToken: accesscookies
       });
       if (res?.status) {
-        Cookies.remove(waitingcookies)
+        Cookies.remove("waitingcookies")
       }
       setAuthorized("yes")
     }
     catch (err) {
       try {
-        await ApiService.post("/api/users/auth/status", {
+        const res = await ApiService.post("/api/users/auth/status", {
           waitingToken: waitingcookies
         })
-        setAuthorized("no")
+        if (res?.accessToken) {
+          Cookies.set("accessToken", res.accessToken)
+          Cookies.remove("waitingToken")
+        }
+        if (res.type == "waiting") {
+          setAuthorized("yesno")
+        }
+
       }
       catch (err) {
         console.log(err)

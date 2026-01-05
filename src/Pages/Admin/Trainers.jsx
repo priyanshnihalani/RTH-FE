@@ -85,7 +85,6 @@ const Trainers = () => {
       ...trainer,
       batchIds,
     });
-    console.log({ ...trainer, batchIds })
   };
 
   /* -------------------- TOGGLE BATCH -------------------- */

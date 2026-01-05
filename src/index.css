@@ -22,3 +22,9 @@
          focus:outline-none focus:ring-2 focus:ring-primary/40
          hover:border-primary;
 }
+
+html, body, #root {
+  height: auto;
+  min-height: 100%;
+  margin: 0;
+}

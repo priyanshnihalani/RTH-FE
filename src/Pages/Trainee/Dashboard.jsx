@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import TaskColumn from "../../components/TaskColumn";
+import { ApiService } from "../../Services/ApiService";
+import Cookie from "js-cookie"
+import { replace, useNavigate } from "react-router-dom";
 // import { getTasksByBatch, updateTaskStatus } from "../services/taskApi";
-
 const SAMPLE_TASKS = [
     {
         id: 1,
@@ -61,10 +63,28 @@ const SAMPLE_TASKS = [
     },
 ];
 
+const STATUS_FLOW = ["ASSIGNED", "IN_PROGRESS", "COMPLETED"];
 
 const TraineeDashboard = () => {
     const [batchId, setBatchId] = useState("mern-jan-2025");
     const [tasks, setTasks] = useState([]);
+    const navigate = useNavigate()
+
+    const loadMe = async () => {
+        const accessToken = Cookie.get("accessToken")
+        const result = await ApiService.post("api/users/auth/me", {accessToken})
+        console.log(result)
+        if (result?.id) {
+            const response = await ApiService.post("api/trainees/getTraineeById", { id: result?.id })
+            if(response?.data?.registration?.wantToBoard){
+                navigate("/pre-board", replace)
+            }
+        }
+    }
+
+    useEffect(() => {
+        loadMe()
+    }, [])
 
     useEffect(() => {
         loadTasks();
@@ -79,30 +99,36 @@ const TraineeDashboard = () => {
     };
 
 
-    const handleTaskAction = (task, forceStatus = null) => {
-        console.log("Action:", task.id, forceStatus);
-
+    const handleTaskAction = (
+        task,
+        forceStatus = null,
+        direction = "forward"
+    ) => {
         setTasks(prevTasks =>
             prevTasks.map(t => {
                 if (t.id !== task.id) return t;
 
-                let nextStatus;
+                let nextStatus = t.status;
 
                 if (forceStatus) {
                     nextStatus = forceStatus;
-                } else if (t.status === "ASSIGNED") {
-                    nextStatus = "IN_PROGRESS";
-                } else if (t.status === "IN_PROGRESS") {
-                    nextStatus = "COMPLETED";
-                } else {
-                    nextStatus = t.status;
+                }
+                else {
+                    const currentIndex = STATUS_FLOW.indexOf(t.status);
+
+                    if (direction === "forward" && currentIndex < STATUS_FLOW.length - 1) {
+                        nextStatus = STATUS_FLOW[currentIndex + 1];
+                    }
+
+                    if (direction === "backward" && currentIndex > 0) {
+                        nextStatus = STATUS_FLOW[currentIndex - 1];
+                    }
                 }
 
                 return { ...t, status: nextStatus };
             })
         );
     };
-
 
 
     const group = (status) =>
@@ -139,24 +165,25 @@ const TraineeDashboard = () => {
     ">
                 <TaskColumn
                     title="Assigned"
-                    count={group("ASSIGNED").length}
+                    status="ASSIGNED"
                     tasks={group("ASSIGNED")}
                     onAction={handleTaskAction}
                 />
 
                 <TaskColumn
                     title="In Progress"
-                    count={group("IN_PROGRESS").length}
+                    status="IN_PROGRESS"
                     tasks={group("IN_PROGRESS")}
                     onAction={handleTaskAction}
                 />
 
                 <TaskColumn
                     title="Completed"
-                    count={group("COMPLETED").length}
+                    status="COMPLETED"
                     tasks={group("COMPLETED")}
                     onAction={handleTaskAction}
                 />
+
             </div>
         </div>
     );

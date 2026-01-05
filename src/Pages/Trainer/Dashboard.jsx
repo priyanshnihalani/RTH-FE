@@ -1,9 +1,70 @@
-const Dashboard = () => {
-    return(
-        <>
-        
-        </>
-    )
-}
+import StatCard from "./StatCard";
+import BatchCard from "./BatchCard";
+import BatchSkeleton from "./BatchSkeleton";
+import { useEffect, useState } from "react";
+import { ApiService } from "../../Services/ApiService";
+import { useNavigate, useOutletContext } from "react-router-dom";
 
-export default Dashboard
+const Dashboard = () => {
+    const [batches, setBatches] = useState([]) 
+    const { trainerId } = useOutletContext()
+    const navigate = useNavigate();
+
+    const loadData = async () => {
+        if(!trainerId) return
+        const res = await ApiService.post("/api/trainer/getTrainersBatches", { trainerId })
+        setBatches(res)
+    }
+
+    useEffect(() => {
+        loadData()
+    }, [trainerId])
+
+    return (
+        <>
+            <div className="px-8 pt-6 space-y-10">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Trainer Dashboard
+                    </h1>
+                    <p className="text-gray-500 text-sm">
+                        Manage your batches, students and tasks
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCard label="Batches" value={batches.length} type="batches" />
+                    <StatCard label="Students" value={batches.reduce((acc, cur) => acc + cur?.Trainees?.length, 0)} type="students" />
+                    <StatCard label="Pending Tasks" value="12" type="pending" />
+                    <StatCard label="Completed Tasks" value="34" type="completed" />
+                </div>
+                <div className="space-y-4 bg-white p-6 rounded-4xl shadow-[0_10px_10px_rgba(0,0,0,0.08)]">
+                    <h2 className="text-lg font-semibold text-gray-800">
+                        Assigned Batches
+                    </h2>
+
+                    <div>
+                        <div className="grid xl:grid-cols-2 gap-2">
+                            {batches.map(batch => (
+                                <BatchCard
+                                    key={batch?.id}
+                                    name={batch?.name}
+                                    tech={batch?.technology}
+                                    students={batch?.Trainees?.length}
+                                    onClick={() => navigate(`/trainer/batches/${batch.id}/${Date.now()}`)}
+                                />
+                            ))}
+                            {batches.length < 8 &&
+                                Array.from({ length: 8 - batches.length }).map((_, index) => (
+                                    <BatchSkeleton key={`skeleton-${index}`} />
+                                ))
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
+
+export default Dashboard;

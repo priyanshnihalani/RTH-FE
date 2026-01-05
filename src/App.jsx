@@ -26,6 +26,9 @@ import Batches from "./Pages/Admin/Batches";
 import Trainers from "./Pages/Admin/Trainers";
 import Trainees from "./Pages/Admin/Trainees";
 import Notes from "./Pages/Admin/Notes";
+import Students from "./Pages/Trainer/Students";
+import Task from "./Pages/Trainer/Task";
+import PreBoard from "./Pages/Trainee/Pre-Board";
 
 function App() {
   const router = createBrowserRouter([
@@ -92,7 +95,12 @@ function App() {
           <TrainerLayout />
         </AuthGuard>
       ),
-      children: [{ path: "dashboard", element: <TrainerDashboard /> }],
+      children: [
+        { path: "dashboard", element: <TrainerDashboard /> },
+        { path: "notes/:id", element: <Notes /> },
+        { path: "batches/:id/:date", element: <Students /> },
+        { path: "tasks/:trainerId/:batchId/:traineeId", element: <Task /> }
+      ],
     },
 
     /* ---------- TRAINEE ---------- */
@@ -109,13 +117,14 @@ function App() {
       ],
     },
 
+    { path: "/pre-board", element: <PreBoard /> },
     { path: "/unauthorized", element: <Unauthorized /> },
     { path: "*", element: <NotFound /> },
   ]);
 
   return <>
-  <RouterProvider router={router} />
-  <ToastContainer/>
+    <RouterProvider router={router} />
+    <ToastContainer />
   </>;
 }
 
