@@ -22,8 +22,7 @@ import BlockingLoader from "../../components/BlockingLoader";
 import { Label } from "@mui/icons-material";
 import Modal from "../../components/Modal";
 import ConstantService from "../../Services/ConstantService";
-
-
+import dayjs from "dayjs";
 
 const Trainee = () => {
   const navigate = useNavigate();
@@ -36,18 +35,20 @@ const Trainee = () => {
   const [openGenerateModal, setOpenGenerateModal] = useState(false);
   const [generateType, setGenerateType] = useState(""); // "certificate" | "offer"
   const [selectedTrainee, setSelectedTrainee] = useState(null);
-const [offerForm, setOfferForm] = useState({
-  joinedAt: "",
-  name: "",
-  firstName: "",
-  duration: "",
-  technology: "",
-  compensation: "",
-  signerName: "",
-  signerDesignation: "",
-});
+  const [offerForm, setOfferForm] = useState({
+    joinedAt: "",
+    name: "",
+    firstName: "",
+    duration: "",
+    technology: "",
+    compensation: "",
+    signerName: "",
+    signerDesignation: "",
+    contactPerson: "",
+    signerMobile: "",
+  });
 
-const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({});
 
   /* ---------- FETCH ---------- */
   const fetchTrainees = async () => {
@@ -67,7 +68,7 @@ const [errors, setErrors] = useState({});
         shift: t.registration?.shift ?? t.shift,
         ndaSigned: t.registration?.ndaSigned ?? t.ndaSigned,
         remarks2: t.registration?.remarks2 ?? t.remarks2,
-        joinedDate: t.registration?.joinedDate ?? t.joinedDate,
+        joinedDate:t.registration?.joinedDate?? t.joinedDate,
         certificateIssued:t.registration?.certificateIssued ?? t.certificateIssued,
         adharSubmitted: t.registration?.adharSubmitted ?? t.adharSubmitted,
         trainingStatus: t.registration?.trainingStatus ?? t.trainingStatus,
@@ -100,7 +101,7 @@ const [errors, setErrors] = useState({});
       admissionStatus: t.admissionStatus || "pending",
       trainingStatus: t.trainingStatus || "not_started",
       technology: t.technology || "",
-      shift: t.shift,
+      shift: !!t.shift || "",
       joinedDate: t.joinedDate || "",
       duration: t.duration || "",
       certificateIssued: !!t.certificateIssued,
@@ -112,6 +113,7 @@ const [errors, setErrors] = useState({});
 
   const updateDraft = (field, value) =>
     setDraft((prev) => ({ ...prev, [field]: value }));
+  console.log("draft",draft)
 
   /* ---------- SAVE ---------- */
   const saveTrainee = async (userId) => {
@@ -122,6 +124,7 @@ const [errors, setErrors] = useState({});
     setDraft({});
     setLoading(false);
   };
+   console.log("draft" ,draft)
 
   /* ---------- DELETE ---------- */
   const deleteTrainee = async (userId) => {
@@ -129,10 +132,85 @@ const [errors, setErrors] = useState({});
     fetchTrainees();
   };
 
- const handleChange = (key, value) => {
-  setOfferForm((prev) => ({ ...prev, [key]: value }));
-  setErrors((prev) => ({ ...prev, [key]: "" }));
+  const handleChange = (key, value) => {
+    setOfferForm((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => ({ ...prev, [key]: "" }));
+  };
+
+  const validateOfferForm = () => {
+  const errors = {};
+
+  if (!offerForm.joinedAt) {
+    errors.joinedAt = "Joining date is required";
+  }
+
+  if (!offerForm.name || offerForm.name.trim().length < 3) {
+    errors.name = "Name must be at least 3 characters";
+  }
+
+  if (!offerForm.firstName) {
+    errors.firstName = "First name is required";
+  }
+
+  if (!offerForm.duration) {
+    errors.duration = "Duration is required";
+  }
+
+  if (!offerForm.technology) {
+    errors.technology = "Technology is required";
+  }
+
+  if (!offerForm.compensation) {
+    errors.compensation = "Compensation is required";
+  }
+
+  if (!offerForm.signerName) {
+    errors.signerName = "Signer name is required";
+  }
+
+  if (!offerForm.signerDesignation) {
+    errors.signerDesignation = "Signer designation is required";
+  }
+
+  if (!offerForm.contactPerson) {
+    errors.contactPerson = "Contact person is required";
+  }
+
+  // ✅ MOBILE NUMBER VALIDATION
+  const mobile = offerForm.signerMobile?.toString().trim();
+
+  if (!mobile) {
+    errors.signerMobile = "Mobile number is required";
+  } else if (!/^[0-9]{10}$/.test(mobile)) {
+    errors.signerMobile = "Enter valid 10-digit mobile number";
+  }
+
+
+
+  setErrors(errors);
+  return Object.keys(errors).length === 0;
 };
+
+  const handleGenerateOfferLetter = async () => {
+    if (!validateOfferForm()) return;
+
+    try {
+      setLoading(true);
+
+      await ApiService.post(
+        "/api/generateOfferLetter/offer_letter_generation",
+        offerForm
+      );
+
+      setOpenGenerateModal(false);
+      setOfferForm({});
+      setErrors({});
+    } catch (error) {
+      console.error("Offer letter generation failed", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -321,8 +399,9 @@ const [errors, setErrors] = useState({});
                               </MenuItem>
                             ))}
                           </Select>
-                        ) : ConstantService.Duration.find((d) => d.value === t.duration)
-                            ?.label || t.duration ? (
+                        ) : ConstantService.Duration.find(
+                            (d) => d.value === t.duration
+                          )?.label || t.duration ? (
                           "Yes"
                         ) : (
                           "No"
@@ -343,8 +422,9 @@ const [errors, setErrors] = useState({});
                               </MenuItem>
                             ))}
                           </Select>
-                        ) : ConstantService.YesNo.find((s) => s.value === t.certificateIssued)
-                            ?.label || t.certificateIssued ? (
+                        ) : ConstantService.YesNo.find(
+                            (s) => s.value === t.certificateIssued
+                          )?.label || t.certificateIssued ? (
                           "yes"
                         ) : (
                           "No"
@@ -366,14 +446,19 @@ const [errors, setErrors] = useState({});
                             ))}
                           </Select>
                         ) : (
-                          ConstantService.Shift.find((s) => s.value === t.shift)?.label || "-"
+                          ConstantService.Shift.find((s) => s.value === t.shift)
+                            ?.label || "-"
                         )}
                       </TableCell>
                       <TableCell>
                         {isEdit ? (
                           <input
                             type="date"
-                            value={draft.joinedDate || ""}
+                            value={
+                              draft.joinedDate
+                                ? dayjs(draft.joinedDate).format("YYYY-MM-DD")
+                                : ""
+                            }
                             onChange={(e) =>
                               updateDraft("joinedDate", e.target.value)
                             }
@@ -385,6 +470,7 @@ const [errors, setErrors] = useState({});
                           "-"
                         )}
                       </TableCell>
+
                       <TableCell>
                         {isEdit ? (
                           <Select
@@ -401,8 +487,9 @@ const [errors, setErrors] = useState({});
                             ))}
                           </Select>
                         ) : (
-                          ConstantService.Technologys.find((s) => s.value === t.technology)
-                            ?.label || "-"
+                          ConstantService.Technologys.find(
+                            (s) => s.value === t.technology
+                          )?.label || "-"
                         )}
                       </TableCell>
                       <TableCell>
@@ -420,8 +507,9 @@ const [errors, setErrors] = useState({});
                               </MenuItem>
                             ))}
                           </Select>
-                        ) : ConstantService.YesNo.find((s) => s.value === t.ndaSigned)?.label ||
-                          t.ndaSigned ? (
+                        ) : ConstantService.YesNo.find(
+                            (s) => s.value === t.ndaSigned
+                          )?.label || t.ndaSigned ? (
                           "Yes"
                         ) : (
                           "No"
@@ -442,8 +530,9 @@ const [errors, setErrors] = useState({});
                               </MenuItem>
                             ))}
                           </Select>
-                        ) : ConstantService.YesNo.find((s) => s.value === t.adharSubmitted)
-                            ?.label || t.adharSubmitted ? (
+                        ) : ConstantService.YesNo.find(
+                            (s) => s.value === t.adharSubmitted
+                          )?.label || t.adharSubmitted ? (
                           "Yes"
                         ) : (
                           "No"
@@ -550,6 +639,8 @@ const [errors, setErrors] = useState({});
                                 compensation: "",
                                 signerName: "",
                                 signerDesignation: "",
+                                contactPerson: "",
+                                signerMobile: "",
                               });
 
                               setOpenGenerateModal(true);
@@ -567,60 +658,96 @@ const [errors, setErrors] = useState({});
           </TableContainer>
         </div>
       </div>
-    <Modal
+      <Modal
   open={openGenerateModal}
   onClose={() => setOpenGenerateModal(false)}
-  title="Generate OfferLetter"
+  title="Generate Offer Letter"
 >
-  <div className="space-y-6">
-    <div className="grid grid-cols-2 gap-4">
-      {[
-        { key: "joinedAt", label: "Joining Date", type: "date" },
-        { key: "name", label: "Name" },
-        { key: "firstName", label: "First Name" },
-        { key: "duration", label: "Duration" },
-        { key: "technology", label: "Technology" },
-        { key: "compensation", label: "Compensation" },
-        { key: "signerName", label: "Signer Name" },
-        { key: "signerDesignation", label: "Signer Designation" },
-      ].map(({ key, label, type }) => (
-        <div key={key}>
-          <label className="block text-sm font-semibold text-gray-600 mb-1">
-            {label}
-          </label>
-          <input
-            type={type || "text"}
-            value={offerForm[key]}
-            onChange={(e) => handleChange(key, e.target.value)}
-            className={`w-full px-4 py-2 rounded-xl border ${
-              errors[key] ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-          {errors[key] && (
-            <p className="text-xs text-red-500 mt-1">{errors[key]}</p>
-          )}
-        </div>
-      ))}
+  <form
+    onSubmit={(e) => {
+      e.preventDefault();
+      handleGenerateOfferLetter();
+    }}
+    className="space-y-6 animate-in fade-in zoom-in-95 duration-200"
+  >
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        {[
+          { key: "joinedAt", label: "Joining Date", type: "date" },
+          { key: "name", label: "Name" },
+          { key: "firstName", label: "First Name" },
+          { key: "duration", label: "Duration" },
+          { key: "technology", label: "Technology" },
+          { key: "compensation", label: "Compensation" },
+        ].map(({ key, label, type }) => (
+          <div key={key} className="space-y-1">
+            <label className="text-xs font-medium text-slate-600">
+              {label}
+            </label>
+            <input
+              type={type || "text"}
+              value={offerForm[key] || ""}
+              onChange={(e) => handleChange(key, e.target.value)}
+              className={`w-full rounded-xl border px-4 py-3 text-sm
+                ${errors[key] ? "border-red-400" : "border-slate-300"}
+                bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+            />
+            {errors[key] && (
+              <p className="text-xs text-red-500">{errors[key]}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        {[
+          { key: "signerName", label: "Signer Name" },
+          { key: "signerDesignation", label: "Signer Designation" },
+          { key: "contactPerson", label: "Contact Person" },
+          { key: "signerMobile", label: "Signer Mobile No" },
+        ].map(({ key, label }) => (
+          <div key={key} className="space-y-1">
+            <label className="text-xs font-medium text-slate-600">
+              {label}
+            </label>
+            <input
+              value={offerForm[key] || ""}
+              onChange={(e) => handleChange(key, e.target.value)}
+              className={`w-full rounded-xl border px-4 py-3 text-sm
+                ${errors[key] ? "border-red-400" : "border-slate-300"}
+                bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+            />
+            {errors[key] && (
+              <p className="text-xs text-red-500">{errors[key]}</p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
 
-    {/* FOOTER */}
-    <div className="flex justify-end gap-3 pt-4">
+    {/* -------- ACTIONS -------- */}
+    <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
       <button
+        type="button"
         onClick={() => setOpenGenerateModal(false)}
-        className="px-5 py-2 rounded-xl border text-gray-600 hover:bg-gray-100"
+        className="px-4 py-2 text-sm rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100"
       >
         Cancel
       </button>
 
       <button
-        // onClick={handleGenerateOfferLetter}
-        className="px-6 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600 shadow"
+        type="submit"
+        className="px-6 py-2 text-sm font-semibold rounded-xl
+        bg-gradient-to-r from-[#FB8924] to-[#f27f1c]
+        text-white shadow-md active:scale-95"
       >
         Save
       </button>
     </div>
-  </div>
+  </form>
 </Modal>
+
     </>
   );
 };
