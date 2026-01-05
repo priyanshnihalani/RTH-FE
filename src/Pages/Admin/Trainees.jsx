@@ -102,7 +102,7 @@ const Trainee = () => {
       admissionStatus: t.admissionStatus || "pending",
       trainingStatus: t.trainingStatus || "not_started",
       technology: t.technology || "",
-      shift: !!t.shift || "",
+      shift: t.shift ?? false,
       joinedDate: t.joinedDate || "",
       duration: t.duration || "",
       wantToBoard: t.wantToBoard,
@@ -308,9 +308,9 @@ const Trainee = () => {
                           <Select
                             multiple
                             size="small"
-                            value={draft.batchIds}
+                            value={draft.batches}
                             onChange={(e) =>
-                              updateDraft("batchIds", e.target.value)
+                              updateDraft("batches", e.target.value)
                             }
                           >
                             {batches.map((b) => (
@@ -424,7 +424,7 @@ const Trainee = () => {
                         ) : ConstantService.YesNo.find(
                           (s) => s.value === t.certificateIssued
                         )?.label || t.certificateIssued ? (
-                          "yes"
+                          "Yes"
                         ) : (
                           "No"
                         )}
@@ -446,7 +446,7 @@ const Trainee = () => {
                           </Select>
                         ) : (
                           ConstantService.Shift.find((s) => s.value === t.shift)
-                            ?.label || "-"
+                            ?.label || true
                         )}
                       </TableCell>
                       <TableCell>
