@@ -7,7 +7,8 @@ const modules = [
     docs: [
       { title: "Timesheet Guidelines", url: "/docs/odoo-timesheets" },
       { title: "Leave Policy", url: "/docs/odoo-leaves" }
-    ]
+    ],
+    type: "doc"
   },
   {
     id: "roles",
@@ -17,21 +18,24 @@ const modules = [
     docs: [
       { title: "Frontend Role", url: "/docs/frontend-role" },
       { title: "Backend Role", url: "/docs/backend-role" }
-    ]
+    ],
+    type: "doc"
   },
   {
     id: "jira",
     title: "Jira Workflow",
     description: "How to manage tasks and tickets",
     status: "not_started",
-    videoId: "1RilyCsxp7U"
+    videoId: "1RilyCsxp7U",
+    type: "video"
   },
   {
     id: "git",
     title: "Git Basics",
     description: "Daily Git workflow used in the company",
     status: "completed",
-    videoId: "q8EevlEpQ2A"
+    videoId: "q8EevlEpQ2A",
+    type: "video"
   }
 ];
 

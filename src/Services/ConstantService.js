@@ -36,10 +36,10 @@ export const ConstantService = {
 
   Duration: [
     { label: "15 Days", value: "15 Days" },
-    { label: "30 Days", value: "30 Days" },
+    { label: "1 month", value: "1 month" },
     { label: "45 Days", value: "45 Days" },
-    { label: "90 Days", value: "90 Days" },
-    { label: "180 Days", value: "180 Days" },
+    { label: "3 months", value: "3 months" },
+    { label: "6 months", value: "6 months" },
   ],
 }
 

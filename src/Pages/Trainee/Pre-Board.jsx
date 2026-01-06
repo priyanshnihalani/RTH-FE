@@ -9,61 +9,110 @@ import { ApiService } from "../../Services/ApiService";
 const COMPLETION_PERCENT = 80;
 
 const PreBoard = () => {
-  const [activeModule, setActiveModule] = useState(modulesData[0]);
+  const [activeModule, setActiveModule] = useState({});
   const [videoProgressMap, setVideoProgressMap] = useState({});
+  const [docProgressMap, setDocProgressMap] = useState({});
   const [user, setUser] = useState(null);
 
   const lastSavedRef = useRef({});
   const accessToken = Cookie.get("accessToken");
 
-  /* ================= LOAD USER + PROGRESS ================= */
+  const orderedModules = useMemo(() => {
+    const hasOdooFromApi =
+      docProgressMap["odoo"] !== undefined ||
+      videoProgressMap["odoo"] !== undefined;
+
+    if (hasOdooFromApi) {
+      const odoo = modulesData.find((m) => m.id === "odoo");
+      const rest = modulesData.filter((m) => m.id !== "odoo");
+      return odoo ? [odoo, ...rest] : modulesData;
+    }
+
+    return modulesData;
+  }, [docProgressMap, videoProgressMap]);
+
   useEffect(() => {
     const loadProgress = async () => {
-      const userRes = await ApiService.post(
-        "/api/users/auth/me",
-        { accessToken }
-      );
-      setUser(userRes);
+      try {
+        const userRes = await ApiService.post(
+          "/api/users/auth/me",
+          { accessToken }
+        );
+        setUser(userRes);
 
-      const progressRes = await ApiService.post(
-        "/api/preboard/video-progress/all",
-        { userId: userRes.id }
-      );
+        const [videoRes, docRes] = await Promise.all([
+          ApiService.post("/api/preboard/video-progress/all", {
+            userId: userRes.id,
+          }),
+          ApiService.post("/api/predoc/userprogress", {
+            userId: userRes.id,
+          }),
+        ]);
 
-      const progressMap = {};
-      progressRes.forEach((row) => {
-        progressMap[row.module_id] = {
-          lastWatchedSecond: row.last_watched_second,
-          progress: row.progress,
-          completed: row.completed,
-        };
-      });
+        const videoMap = {};
+        videoRes.forEach((row) => {
+          videoMap[row.module_id] = {
+            lastWatchedSecond: row.last_watched_second,
+            progress: row.progress,
+            completed: row.completed,
+          };
+        });
 
-      setVideoProgressMap(progressMap);
+        const docMap = {};
+        docRes.progress.forEach((row) => {
+          docMap[row.module_id] = {
+            status: row.status.toLowerCase(),
+          };
+        });
+
+        setVideoProgressMap(videoMap);
+        setDocProgressMap(docMap);
+      } catch (err) {
+        console.error("Failed to load progress", err);
+      }
     };
 
     loadProgress();
   }, [accessToken]);
 
-  /* ================= DERIVE MODULE STATUS ================= */
+  useEffect(() => {
+    if (!orderedModules.length) return;
+
+    if (!activeModule) {
+      setActiveModule(orderedModules[0]);
+    }
+  }, [orderedModules, activeModule]);
+
+
+
   const getModuleStatus = useCallback(
     (moduleId) => {
-      const progress = videoProgressMap[moduleId];
+      const moduleMeta = modulesData.find((m) => m.id === moduleId);
+      const video = videoProgressMap[moduleId];
+      const doc = docProgressMap[moduleId];
 
-      if (!progress || !progress.progress) {
+      if (moduleMeta?.type === "doc") {
+        if (doc?.status === "completed") return "COMPLETED";
+        if (doc?.status === "started") return "IN_PROGRESS";
         return "NOT_STARTED";
       }
 
-      if (progress.completed || progress.progress >= COMPLETION_PERCENT) {
-        return "COMPLETED";
+      if (moduleMeta?.type === "video") {
+        if (video?.completed || video?.progress >= COMPLETION_PERCENT) {
+          return "COMPLETED";
+        }
+        if (video && video.progress > 0) {
+          return "IN_PROGRESS";
+        }
+        return "NOT_STARTED";
       }
 
-      return "IN_PROGRESS";
+      return "NOT_STARTED";
     },
-    [videoProgressMap]
+    [videoProgressMap, docProgressMap]
   );
 
-  /* ================= MODULES WITH STATUS ================= */
+
   const modulesWithStatus = useMemo(() => {
     return modulesData.map((mod) => ({
       ...mod,
@@ -71,7 +120,27 @@ const PreBoard = () => {
     }));
   }, [getModuleStatus]);
 
-  /* ================= VIDEO PROGRESS HANDLER ================= */
+
+  const getOverallPreBoardProgress = useCallback(() => {
+    let totalProgress = 0;
+
+    modulesData.forEach((mod) => {
+      if (mod.type === "doc") {
+        if (docProgressMap[mod.id]?.status === "completed") {
+          totalProgress += 25;
+        }
+      }
+
+      if (mod.type === "video") {
+        const videoProgress = videoProgressMap[mod.id]?.progress || 0;
+        totalProgress += (videoProgress / 100) * 25;
+      }
+    });
+
+    return Math.min(Math.round(totalProgress), 100);
+  }, [docProgressMap, videoProgressMap]);
+
+
   const handleVideoProgress = useCallback(
     async (moduleId, data) => {
       setVideoProgressMap((prev) => ({
@@ -82,6 +151,19 @@ const PreBoard = () => {
           completed: data.percent >= COMPLETION_PERCENT,
         },
       }));
+
+      const moduleMeta = modulesData.find((m) => m.id === moduleId);
+
+      if (
+        moduleMeta?.type === "doc" &&
+        data.percent >= COMPLETION_PERCENT &&
+        docProgressMap[moduleId]?.status !== "completed"
+      ) {
+        await setStatus({
+          id: moduleId,
+          status: "completed",
+        });
+      }
 
       const lastSaved = lastSavedRef.current[moduleId] || 0;
 
@@ -97,24 +179,31 @@ const PreBoard = () => {
         });
       }
     },
-    [user, activeModule.videoId]
+    [user, activeModule.videoId, docProgressMap]
   );
 
   const setStatus = async (data) => {
-      const set = {
-        user_id: user?.id,
-        module_id: data.id,
-        status: data.status
-      }
+    const payload = {
+      user_id: user?.id,
+      module_id: data.id,
+      status: data.status.toLowerCase(),
+    };
 
-      const result = await ApiService.post("api/predoc/upsert", {set})
-      console.log(result)
-  }
+    try {
+      await ApiService.post("/api/predoc/upsert", payload);
 
-  /* ================= RENDER ================= */
+      setDocProgressMap((prev) => ({
+        ...prev,
+        [data.id]: { status: payload.status },
+      }));
+    } catch (err) {
+      console.error("Doc status update failed", err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-6">
-      <PreBoardHeader />
+      <PreBoardHeader progress={getOverallPreBoardProgress()} />
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <PreBoardGrid
