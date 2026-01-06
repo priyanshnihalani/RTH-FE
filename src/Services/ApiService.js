@@ -22,9 +22,11 @@ export const ApiService = {
         return api.delete(path, config).then((res) => res.data);
     },
 
-    async postBlob(path, data = {}) {
-        return api.post(path, data, {
-            responseType: "blob",
+    async postFile(path, data = {}, config = {}) {
+        const res = await api.post(path, data, {
+            responseType: "arraybuffer",
+            ...config,
         });
-    },
+        return res.data;
+    }
 };

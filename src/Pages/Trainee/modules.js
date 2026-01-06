@@ -24,14 +24,14 @@ const modules = [
     title: "Jira Workflow",
     description: "How to manage tasks and tickets",
     status: "not_started",
-    video: "https://www.youtube.com/embed/your-jira-video-id"
+    videoId: "1RilyCsxp7U"
   },
   {
     id: "git",
     title: "Git Basics",
     description: "Daily Git workflow used in the company",
     status: "completed",
-    video: "https://www.youtube.com/embed/your-git-video-id"
+    videoId: "q8EevlEpQ2A"
   }
 ];
 

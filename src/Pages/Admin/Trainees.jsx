@@ -195,13 +195,27 @@ const Trainee = () => {
     try {
       setLoading(true);
 
-      await ApiService.post(
+      const buffer = await ApiService.postFile(
         "/api/generateOfferLetter/offer_letter_generation",
         offerForm
       );
 
+      const pdfBlob = new Blob([buffer], {
+        type: "application/pdf",
+      });
+
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+
+      link.href = pdfUrl;
+      link.download = "Offer_Letter.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(pdfUrl);
+
       setOpenGenerateModal(false);
-      setOfferForm({});
       setErrors({});
     } catch (error) {
       console.error("Offer letter generation failed", error);
@@ -209,6 +223,7 @@ const Trainee = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <>
@@ -768,7 +783,6 @@ const Trainee = () => {
           </div>
         </form>
       </Modal>
-
     </>
   );
 };

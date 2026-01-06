@@ -72,12 +72,12 @@ const TraineeDashboard = () => {
 
     const loadMe = async () => {
         const accessToken = Cookie.get("accessToken")
-        const result = await ApiService.post("api/users/auth/me", {accessToken})
+        const result = await ApiService.post("api/users/auth/me", { accessToken })
         console.log(result)
         if (result?.id) {
             const response = await ApiService.post("api/trainees/getTraineeById", { id: result?.id })
-            if(response?.data?.registration?.wantToBoard){
-                navigate("/pre-board", replace)
+            if (response?.data?.registration?.wantToBoard) {
+                navigate("/pre-board", { replace: true })
             }
         }
     }

@@ -1,19 +1,19 @@
 const STATUS_CONFIG = {
-  not_started: {
+  NOT_STARTED: {
     label: "Not Started",
     className: "bg-gray-100 text-gray-600"
   },
-  in_progress: {
+  IN_PROGRESS: {
     label: "In Progress",
     className: "bg-orange-100 text-orange-600"
   },
-  completed: {
+  COMPLETED: {
     label: "Completed",
     className: "bg-green-100 text-green-600"
   }
 };
 
-const StatusBadge = ({ status = "not_started" }) => {
+const StatusBadge = ({ status = "NOT_STARTED" }) => {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.not_started;
 
   return (

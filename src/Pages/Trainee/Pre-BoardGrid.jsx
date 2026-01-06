@@ -1,9 +1,9 @@
 import PreBoardCard from "./Pre-BoardCard";
 
-const PreBoardGrid = ({ modules, onSelect, activeId }) => {
+const PreBoardGrid = ({ modules, onSelect, activeId}) => {
   return (
     <div className="space-y-4">
-      {modules.map((mod) => (
+      {modules.map((mod, index) => (
         <PreBoardCard
           key={mod.id}
           module={mod}

@@ -29,6 +29,11 @@ import Notes from "./Pages/Admin/Notes";
 import Students from "./Pages/Trainer/Students";
 import Task from "./Pages/Trainer/Task";
 import PreBoard from "./Pages/Trainee/Pre-Board";
+import OodoTimeSheet from "./Pages/Docs/OodoTimeSheet";
+import DocsLayout from "./Layout/DocsLayout";
+import OodoLeaves from "./Pages/Docs/OodoLeaves";
+import FrontendRole from "./Pages/Docs/FrontendRole";
+import BackendRole from "./Pages/Docs/BackendRole";
 
 function App() {
   const router = createBrowserRouter([
@@ -117,6 +122,20 @@ function App() {
       ],
     },
 
+    {
+      path: "/docs",
+      element: (
+        <AuthGuard>
+          <DocsLayout />
+        </AuthGuard>
+      ),
+      children: [
+        { path: "odoo-timesheets", element: <OodoTimeSheet /> },
+        { path: "odoo-leaves", element: <OodoLeaves /> },
+        { path: "frontend-role", element: <FrontendRole /> },
+        { path: "backend-role", element: <BackendRole /> }
+      ]
+    },
     { path: "/pre-board", element: <PreBoard /> },
     { path: "/unauthorized", element: <Unauthorized /> },
     { path: "*", element: <NotFound /> },
