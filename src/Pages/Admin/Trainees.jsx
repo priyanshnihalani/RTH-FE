@@ -33,7 +33,7 @@ const Trainee = () => {
   const [draft, setDraft] = useState({});
   const [loading, setLoading] = useState(false);
   const [openGenerateModal, setOpenGenerateModal] = useState(false);
-  const [generateType, setGenerateType] = useState(""); // "certificate" | "offer"
+  const [generateType, setGenerateType] = useState("certificate" || "offer"); // "certificate" | "offer"
   const [selectedTrainee, setSelectedTrainee] = useState(null);
   const [offerForm, setOfferForm] = useState({
     joinedAt: "",
@@ -46,6 +46,12 @@ const Trainee = () => {
     signerDesignation: "",
     contactPerson: "",
     signerMobile: "",
+  });
+  const [certificate, setcertificate] = useState({
+    EndDate: "",
+    Name: "",
+    duration: "",
+    technology: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -69,7 +75,8 @@ const Trainee = () => {
         ndaSigned: t.registration?.ndaSigned ?? t.ndaSigned,
         remarks2: t.registration?.remarks2 ?? t.remarks2,
         joinedDate: t.registration?.joinedDate ?? t.joinedDate,
-        certificateIssued: t.registration?.certificateIssued ?? t.certificateIssued,
+        certificateIssued:
+          t.registration?.certificateIssued ?? t.certificateIssued,
         adharSubmitted: t.registration?.adharSubmitted ?? t.adharSubmitted,
         trainingStatus: t.registration?.trainingStatus ?? t.trainingStatus,
         remainingFee: t.registration?.remainingFee ?? 0,
@@ -115,7 +122,6 @@ const Trainee = () => {
 
   const updateDraft = (field, value) =>
     setDraft((prev) => ({ ...prev, [field]: value }));
-  console.log("draft", draft)
 
   /* ---------- SAVE ---------- */
   const saveTrainee = async (userId) => {
@@ -126,7 +132,6 @@ const Trainee = () => {
     setDraft({});
     setLoading(false);
   };
-  console.log("draft", draft)
 
   /* ---------- DELETE ---------- */
   const deleteTrainee = async (userId) => {
@@ -195,9 +200,12 @@ const Trainee = () => {
     try {
       setLoading(true);
 
-      const buffer = await ApiService.postFile(
+      const buffer = await ApiService.post(
         "/api/generateOfferLetter/offer_letter_generation",
-        offerForm
+        offerForm,
+        {
+          responseType: "blob",
+        }
       );
 
       const pdfBlob = new Blob([buffer], {
@@ -223,7 +231,36 @@ const Trainee = () => {
       setLoading(false);
     }
   };
+  const handleChangecertificate = (key, value) => {
+    setcertificate((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => ({ ...prev, [key]: "" }));
+  };
 
+  const validatecertificateForm = () => {
+    const errors = {};
+
+    if (!certificate.EndDate) {
+      errors.EndDate = "EndDate is required";
+    }
+
+    if (!certificate.Name || certificate.Name.trim().length < 3) {
+      errors.Name = "Name must be at least 3 characters";
+    }
+    if (!certificate.duration) {
+      errors.duration = "Duration is required";
+    }
+
+    if (!certificate.technology) {
+      errors.technology = "Technology is required";
+    }
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleGeneratecertificate = async () => {
+    if (!validatecertificateForm()) return;
+   
+  };
 
   return (
     <>
@@ -413,12 +450,10 @@ const Trainee = () => {
                               </MenuItem>
                             ))}
                           </Select>
-                        ) : ConstantService.Duration.find(
-                          (d) => d.value === t.duration
-                        )?.label || t.duration ? (
-                          "Yes"
                         ) : (
-                          "No"
+                          ConstantService.Duration.find(
+                            (s) => s.value === t.duration
+                          )?.label || "-"
                         )}
                       </TableCell>
                       <TableCell>
@@ -437,8 +472,8 @@ const Trainee = () => {
                             ))}
                           </Select>
                         ) : ConstantService.YesNo.find(
-                          (s) => s.value === t.certificateIssued
-                        )?.label || t.certificateIssued ? (
+                            (s) => s.value === t.certificateIssued
+                          )?.label || t.certificateIssued ? (
                           "Yes"
                         ) : (
                           "No"
@@ -639,11 +674,17 @@ const Trainee = () => {
                                 backgroundColor: "#f57c00",
                               },
                             }}
-                          // onClick={() => {
-                          //   setGenerateType("certificate");
-                          //   setSelectedTrainee(t);
-                          //   setOpenGenerateModal(true);
-                          // }}
+                            onClick={() => {
+                              setGenerateType("certificate");
+                              setSelectedTrainee(t);
+                              setcertificate({
+                                EndDate: "",
+                                Name: "",
+                                duration: "",
+                                technology: "",
+                              });
+                              setOpenGenerateModal(true);
+                            }}
                           >
                             Certificate
                           </Button>
@@ -694,7 +735,166 @@ const Trainee = () => {
           </TableContainer>
         </div>
       </div>
-      <Modal
+      {generateType ==="certificate" && (
+         <Modal
+        open={openGenerateModal}
+        onClose={() => setOpenGenerateModal(false)}
+        title="Generate Certificate"
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleGeneratecertificate();
+          }}
+          className="space-y-6 animate-in fade-in zoom-in-95 duration-200"
+        >
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Joining Date */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  EndDate
+                </label>
+                <input
+                  type="date"
+                  value={certificate.EndDate || ""}
+                  onChange={(e) =>
+                    handleChangecertificate("EndDate", e.target.value)
+                  }
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${
+                errors.EndDate
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.EndDate && (
+                  <p className="text-xs text-red-500">{errors.EndDate}</p>
+                )}
+              </div>
+
+              {/* Name */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Name
+                </label>
+                <input
+                  value={certificate.Name || ""}
+                  onChange={(e) =>
+                    handleChangecertificate("Name", e.target.value)
+                  }
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${
+                errors.Name
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.Name && (
+                  <p className="text-xs text-red-500">{errors.Name}</p>
+                )}
+              </div>
+
+              {/* Duration */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Duration
+                </label>
+
+                <select
+                  value={certificate.duration || ""}
+                  onChange={(e) =>
+                    handleChangecertificate("duration", e.target.value)
+                  }
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+      ${errors.duration ? "border-red-400" : "border-slate-300"}
+      bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                >
+                  <option value="">Select duration</option>
+                  {ConstantService.Duration.map((tech) => (
+                    <option key={tech.value} value={tech.value}>
+                      {tech.label}
+                    </option>
+                  ))}
+                </select>
+
+                {errors.duration && (
+                  <p className="text-xs text-red-500">{errors.duration}</p>
+                )}
+              </div>
+
+              {/* Technology */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Technology
+                </label>
+                <select
+                  name="technology"
+                  value={certificate.technology}
+                  onChange={(e) =>
+                    handleChangecertificate("technology", e.target.value)
+                  }
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+                          ${
+                            errors.technology
+                              ? "border-red-400"
+                              : "border-slate-300"
+                          }
+                          bg-white text-slate-800
+                          focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40 transition`}
+                >
+                  <option value="">Select technology</option>
+                  {ConstantService.Technologys.map((tech) => (
+                    <option key={tech.value} value={tech.value}>
+                      {tech.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.technology && (
+                  <p className="text-xs text-red-500">{errors.technology}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* -------- ACTIONS -------- */}
+          <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={() => {
+                setErrors({});
+                setOpenGenerateModal(false);
+              }}
+              className="
+      px-5 py-2 text-sm rounded-xl
+      border border-slate-300
+      text-slate-700
+      hover:bg-slate-100
+      transition
+    "
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="
+      px-5 py-2 text-sm font-semibold rounded-xl
+      bg-gradient-to-r from-[#FB8924] to-[#f27f1c]
+      text-white shadow-md
+      transition active:scale-95
+    "
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </Modal>
+      )}
+      {generateType === "offer" && (
+            <Modal
         open={openGenerateModal}
         onClose={() => setOpenGenerateModal(false)}
         title="Generate Offer Letter"
@@ -708,81 +908,226 @@ const Trainee = () => {
         >
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              {[
-                { key: "joinedAt", label: "Joining Date", type: "date" },
-                { key: "name", label: "Name" },
-                { key: "firstName", label: "First Name" },
-                { key: "duration", label: "Duration" },
-                { key: "technology", label: "Technology" },
-                { key: "compensation", label: "Compensation" },
-              ].map(({ key, label, type }) => (
-                <div key={key} className="space-y-1">
-                  <label className="text-xs font-medium text-slate-600">
-                    {label}
-                  </label>
-                  <input
-                    type={type || "text"}
-                    value={offerForm[key] || ""}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                    className={`w-full rounded-xl border px-4 py-3 text-sm
-                ${errors[key] ? "border-red-400" : "border-slate-300"}
-                bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                  />
-                  {errors[key] && (
-                    <p className="text-xs text-red-500">{errors[key]}</p>
-                  )}
-                </div>
-              ))}
+              {/* Joining Date */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Joining Date
+                </label>
+                <input
+                  type="date"
+                  value={offerForm.joinedAt || ""}
+                  onChange={(e) => handleChange("joinedAt", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${
+                errors.joinedAt
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.joinedAt && (
+                  <p className="text-xs text-red-500">{errors.joinedAt}</p>
+                )}
+              </div>
+
+              {/* Name */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Name
+                </label>
+                <input
+                  value={offerForm.name || ""}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${
+                errors.name
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.name && (
+                  <p className="text-xs text-red-500">{errors.name}</p>
+                )}
+              </div>
+
+              {/* First Name */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  First Name
+                </label>
+                <input
+                  value={offerForm.firstName || ""}
+                  onChange={(e) => handleChange("firstName", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.firstName ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.firstName && (
+                  <p className="text-xs text-red-500">{errors.firstName}</p>
+                )}
+              </div>
+
+              {/* Duration */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Duration
+                </label>
+                <input
+                  value={offerForm.duration || ""}
+                  onChange={(e) => handleChange("duration", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.duration ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.duration && (
+                  <p className="text-xs text-red-500">{errors.duration}</p>
+                )}
+              </div>
+
+              {/* Technology */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Technology
+                </label>
+                <input
+                  value={offerForm.technology || ""}
+                  onChange={(e) => handleChange("technology", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.technology ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.technology && (
+                  <p className="text-xs text-red-500">{errors.technology}</p>
+                )}
+              </div>
+
+              {/* Compensation */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Compensation
+                </label>
+                <input
+                  value={offerForm.compensation || ""}
+                  onChange={(e) => handleChange("compensation", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.compensation ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.compensation && (
+                  <p className="text-xs text-red-500">{errors.compensation}</p>
+                )}
+              </div>
             </div>
           </div>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { key: "signerName", label: "Signer Name" },
-                { key: "signerDesignation", label: "Signer Designation" },
-                { key: "contactPerson", label: "Contact Person" },
-                { key: "signerMobile", label: "Signer Mobile No" },
-              ].map(({ key, label }) => (
-                <div key={key} className="space-y-1">
-                  <label className="text-xs font-medium text-slate-600">
-                    {label}
-                  </label>
-                  <input
-                    value={offerForm[key] || ""}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                    className={`w-full rounded-xl border px-4 py-3 text-sm
-                ${errors[key] ? "border-red-400" : "border-slate-300"}
-                bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                  />
-                  {errors[key] && (
-                    <p className="text-xs text-red-500">{errors[key]}</p>
-                  )}
-                </div>
-              ))}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-600">
+                Signer Name
+              </label>
+              <input
+                value={offerForm.signerName || ""}
+                onChange={(e) => handleChange("signerName", e.target.value)}
+                className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.signerName ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              />
+              {errors.signerName && (
+                <p className="text-xs text-red-500">{errors.signerName}</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-600">
+                Signer Designation
+              </label>
+              <input
+                value={offerForm.signerDesignation || ""}
+                onChange={(e) =>
+                  handleChange("signerDesignation", e.target.value)
+                }
+                className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${
+                errors.signerDesignation ? "border-red-400" : "border-slate-300"
+              }
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              />
+              {errors.signerDesignation && (
+                <p className="text-xs text-red-500">
+                  {errors.signerDesignation}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-600">
+                Contact Person
+              </label>
+              <input
+                value={offerForm.contactPerson || ""}
+                onChange={(e) => handleChange("contactPerson", e.target.value)}
+                className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.contactPerson ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              />
+              {errors.contactPerson && (
+                <p className="text-xs text-red-500">{errors.contactPerson}</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-600">
+                Signer Mobile No
+              </label>
+              <input
+                value={offerForm.signerMobile || ""}
+                onChange={(e) => handleChange("signerMobile", e.target.value)}
+                className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.signerMobile ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              />
+              {errors.signerMobile && (
+                <p className="text-xs text-red-500">{errors.signerMobile}</p>
+              )}
             </div>
           </div>
 
           {/* -------- ACTIONS -------- */}
-          <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
+          <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-slate-200">
             <button
               type="button"
-              onClick={() => setOpenGenerateModal(false)}
-              className="px-4 py-2 text-sm rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100"
+              onClick={() => {
+                setErrors({});
+                setOpenGenerateModal(false);
+              }}
+              className="
+      px-5 py-2 text-sm rounded-xl
+      border border-slate-300
+      text-slate-700
+      hover:bg-slate-100
+      transition
+    "
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-6 py-2 text-sm font-semibold rounded-xl
-        bg-gradient-to-r from-[#FB8924] to-[#f27f1c]
-        text-white shadow-md active:scale-95"
+              className="
+      px-5 py-2 text-sm font-semibold rounded-xl
+      bg-gradient-to-r from-[#FB8924] to-[#f27f1c]
+      text-white shadow-md
+      transition active:scale-95
+    "
             >
               Save
             </button>
           </div>
         </form>
       </Modal>
+      )}
+  
     </>
   );
 };
