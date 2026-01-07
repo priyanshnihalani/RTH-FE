@@ -13,12 +13,18 @@ const AuthGuard = ({ children, requireAuth = true }) => {
     const accesscookies = Cookies.get("accessToken")
     const waitingcookies = Cookies.get("waitingToken")
 
+    if (!accesscookies && !waitingcookies) {
+      setAuthorized("no");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await ApiService.post("/api/users/auth/me", {
         accessToken: accesscookies
       });
-      if (res?.status) {
-        Cookies.remove("waitingcookies")
+      if (res?.status == "approved") {
+        Cookies.remove(waitingcookies)
       }
       setAuthorized("yes")
     }
@@ -50,10 +56,8 @@ const AuthGuard = ({ children, requireAuth = true }) => {
     checkAuth();
   }, [location.pathname]);
 
-  /* ============ LOADING ============ */
   if (loading) return null;
 
-  /* ============ ROUTE GUARD ============ */
   if (requireAuth && authorized === "no") {
     return <Navigate to="/login" replace />;
   }

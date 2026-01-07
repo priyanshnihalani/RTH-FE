@@ -1,7 +1,7 @@
 import { User, Mail, Phone, Lock, LucideCircleArrowRight } from "lucide-react";
 import { useState } from "react";
 import { ApiService } from "../../Services/ApiService";
-import { useNavigate } from "react-router-dom";
+import { replace, useNavigate } from "react-router-dom";
 import BlockingLoader from "../../components/BlockingLoader";
 import Cookies from 'js-cookie'
 
@@ -332,7 +332,7 @@ export default function Register() {
                                 {/* Footer */}
                                 <p className="text-center text-sm text-slate-500 mt-8">
                                     Already have an account?
-                                    <span className="ml-2 font-semibold text-[#FB8924] hover:underline cursor-pointer">
+                                    <span className="ml-2 font-semibold text-[#FB8924] hover:underline cursor-pointer" onClick={() => navigate("/login", replace)}>
                                         Sign In
                                     </span>
                                 </p>

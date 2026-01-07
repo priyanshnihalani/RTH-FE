@@ -22,9 +22,11 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(false)
 
     const handleLogout = async () => {
-        await ApiService.get("/api/users/logout");
-        Cookies.remove('accessToken')
-        navigate("/login");
+        const res = await ApiService.get("/api/users/logout");
+        if (res.message == "Logged out successfully") {
+            Cookies.remove('accessToken')
+            navigate("/");
+        }
     };
 
     const handleStatus = async (id, bool) => {
@@ -182,7 +184,7 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="space-y-2 min-h-65 flex flex-col justify-center">
+                    <div className="space-y-2 min-h-65 flex flex-col ">
                         {trainees.length === 0 ? (
                             /* -------- EMPTY STATE -------- */
                             <div className="
