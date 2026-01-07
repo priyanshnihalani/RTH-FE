@@ -1,176 +1,311 @@
 import { useEffect, useState } from "react";
-import TaskColumn from "../../components/TaskColumn"
-import { Button } from "@mui/material";
+import TaskColumn from "../../components/TaskColumn";
+import { Button, Modal, Box } from "@mui/material";
 import { Plus } from "lucide-react";
+import { toast } from "react-toastify";
+import { ApiService } from "../../Services/ApiService";
+import ToastLogo from "../../components/ToastLogo";
+import { useParams } from "react-router-dom";
+import TaskCard from "../../components/TaskCard";
+
 
 const Task = () => {
-    const [tasks, setTasks] = useState([])
-    const [batchId, setBatchId] = useState("mern-jan-2025");
+  const [tasks, setTasks] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [batchId, setBatchId] = useState("mern-jan-2025");
+  const [openGenerateModal, setOpenGenerateModal] = useState(false);
+  const parms = useParams()
+    const [formData, setformData] = useState({
+    title: "",
+    description: "",
+  });
+  console.log("params",parms)
+  const handleChange = (e) => {
+    setformData({ ...formData, [e.target.name]: e.target.value });
+     setErrors({ ...errors, [e.target.name]: "" });
+  };
+   const validateForm = () => {
+    const errors = {};
 
-    const group = (status) =>
-        tasks.filter(t => t.status === status);
+    if (!formData.title || formData.title.trim().length < 3) {
+      errors.title = "Task title must be at least 3 characters";
+    }
+     if (!formData.description || formData.description.trim().length < 10) {
+      errors.description = "Task description must be at least 10 characters";
+    }
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
-    const SAMPLE_TASKS = [
-        {
-            id: 1,
-            title: "API Integration with Node.js",
-            description: "Connect React frontend with Node/Express backend APIs.",
-            status: "ASSIGNED",
-            trainerName: "Sarah Connor",
-            dueDate: "Jan 24",
-            batchId: "mern-jan-2025",
-        },
-        {
-            id: 2,
-            title: "Advanced CSS Layouts",
-            description: "Build responsive layouts using Flexbox and Grid.",
-            status: "ASSIGNED",
-            trainerName: "Mike Ross",
-            dueDate: "Jan 28",
-            batchId: "mern-jan-2025",
-        },
-        {
-            id: 3,
-            title: "React Components Deep Dive",
-            description: "Understand props, state, and lifecycle methods.",
-            status: "IN_PROGRESS",
-            trainerName: "David Chen",
-            dueDate: "Jan 26",
-            batchId: "mern-jan-2025",
-        },
-        {
-            id: 4,
-            title: "State Management with Redux",
-            description: "Redux flow, store, reducers, and Redux Toolkit.",
-            status: "IN_PROGRESS",
-            trainerName: "Sarah Connor",
-            dueDate: "Jan 30",
-            batchId: "mern-jan-2025",
-        },
-        {
-            id: 5,
-            title: "Introduction to Git",
-            description: "Git basics, branching, and merge conflict resolution.",
-            status: "COMPLETED",
-            trainerName: "David Chen",
-            dueDate: "Jan 20",
-            batchId: "mern-jan-2025",
-        },
+const handleSubmit = async () => {
+  if (!validateForm()) return;
 
-        {
-            id: 6,
-            title: "React Hooks Basics",
-            description: "useState, useEffect, and custom hooks.",
-            status: "ASSIGNED",
-            trainerName: "Alex Morgan",
-            dueDate: "Feb 10",
-            batchId: "react-feb-2025",
-        },
-    ];
+  const payload = {
+    title: formData.title,
+    description: formData.description,
+    ...parms
+  };
 
-    const STATUS_FLOW = ["ASSIGNED", "IN_PROGRESS", "COMPLETED"];
+  try {
+    const res = await ApiService.post("/api/task/assign", payload);
 
-    const handleTaskAction = (
-        task,
-        forceStatus = null,
-        direction = "forward"
-    ) => {
-        setTasks(prevTasks =>
-            prevTasks.map(t => {
-                if (t.id !== task.id) return t;
+    const newTask = res;
 
-                let nextStatus = t.status;
+    setTasks(prev => [...prev, newTask]);
+    console.log("task",tasks)
+    toast.success("Task Created Successfully!");
+    setOpenGenerateModal(false);
 
-                if (forceStatus) {
-                    nextStatus = forceStatus;
-                }
-                else {
-                    const currentIndex = STATUS_FLOW.indexOf(t.status);
+    setformData({
+      title: "",
+      description: "",
+    });
 
-                    if (direction === "forward" && currentIndex < STATUS_FLOW.length - 1) {
-                        nextStatus = STATUS_FLOW[currentIndex + 1];
-                    }
-
-                    if (direction === "backward" && currentIndex > 0) {
-                        nextStatus = STATUS_FLOW[currentIndex - 1];
-                    }
-                }
-
-                return { ...t, status: nextStatus };
-            })
-        );
-    };
-
-    useEffect(() => {
-        loadTasks();
-    }, [batchId]);
+    setErrors({});
+  } catch (err) {
+    console.error(err?.response?.data || err);
+    toast.error(err?.response?.data?.message || "Something went wrong!");
+  }
+};
 
 
-    const loadTasks = async () => {
-        const data = SAMPLE_TASKS.filter(
-            task => task.batchId === batchId
-        );
-        setTasks(data);
-    };
-    return (
-        <div className="
-  ">
 
-            {/* HEADER */}
-            <div className="
+  const group = (status) => tasks.filter((t) => t.status === status);
+
+
+  const STATUS_FLOW = ["ASSIGNED", "IN_PROGRESS", "COMPLETED"];
+
+
+  const handleTaskAction = async (task, newStatus) => {
+    try {
+      await ApiService.put(`/api/task/update/status`, {
+        traineeId: task.traineeId,
+        taskId:task.id,
+        newStatus:newStatus,
+      });
+
+      setTasks((prev) =>
+        prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t))
+      );
+    } catch (err) {
+      toast.error("Status update failed");
+    }
+  };
+
+  const loadTasks = async () => {
+    try {
+      const res = await ApiService.post("/api/task/traineetask", {
+        ...parms
+      });
+
+      setTasks(res);
+      console.log("res",res)
+    } catch (err) {
+      console.error(err);
+    }
+  };
+   useEffect(() => {
+    loadTasks();
+  }, [batchId]);
+
+  return (
+    <div
+      className="
+  "
+    >
+      {/* HEADER */}
+      <div
+        className="
       mx-8 mt-8 mb-12
       rounded-2xl
       p-6
       flex justify-between items-center
-    ">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Trainer Tasks</h1>
-                    <p className="text-gray-500">
-                        Manage and track your trainees assignments
-                    </p>
-                </div>
+    "
+      >
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Trainer Tasks</h1>
+          <p className="text-gray-500">
+            Manage and track your trainees assignments
+          </p>
+        </div>
 
-                <h1 className="font-semibold text-gray-700">
-                    Batch: <span className="font-bold">MERN Batch-2025</span>
-                </h1>
+        <h1 className="font-semibold text-gray-700">
+          Batch: <span className="font-bold">MERN Batch-2025</span>
+        </h1>
 
-                <button className="absolute bottom-10 right-10 flex p-4 font-medium cursor-pointer hover:bg-primary-dark text-sm space-x-1 items-center bg-primary text-white  rounded-full">
-                    <Plus size={18} />
-                </button>
+        <button
+          onClick={() => setOpenGenerateModal(true)}
+          className=" z-10 absolute bottom-10 right-10 flex p-4 font-medium cursor-pointer hover:bg-primary-dark text-sm space-x-1 items-center bg-primary text-white  rounded-full"
+        >
+          <Plus size={18} />
+        </button>
+      </div>
 
-
-
-            </div>
-
-            {/* KANBAN */}
-            <div className="
+      {/* KANBAN */}
+      <div
+        className="
       px-8 pb-12
       grid grid-cols-1 md:grid-cols-3 gap-10
-    ">
-                <TaskColumn
-                    title="Assigned"
-                    status="ASSIGNED"
-                    tasks={group("ASSIGNED")}
-                    onAction={handleTaskAction}
+    "
+      >
+        <TaskColumn
+          title="Assigned"
+          status="ASSIGNED"
+          tasks={group("ASSIGNED")}
+          onAction={handleTaskAction}
+        />
+
+        <TaskColumn
+          title="In Progress"
+          status="IN_PROGRESS"
+          tasks={group("IN_PROGRESS")}
+          onAction={handleTaskAction}
+        />
+
+        <TaskColumn
+          title="Completed"
+          status="COMPLETED"
+          tasks={group("COMPLETED")}
+          onAction={handleTaskAction}
+        />
+      </div>
+      <Modal
+        open={openGenerateModal}
+        onClose={() => setOpenGenerateModal(false)}
+      >
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+          
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 720,
+            bgcolor: "#F7F6F4",
+            borderRadius: "20px",
+            boxShadow: "0px 20px 60px rgba(0,0,0,0.2)",
+            p: 4,
+          }}
+          >{/* HEADER */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+            }}
+          >
+            <h2 style={{ fontWeight: 600, color: "#1F2937" }}>Create Task</h2>
+          </Box>
+          {/* FORM GRID */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "20px",
+            }}
+          >
+            {/* NAME */}
+            <Box sx={{ gridColumn: "span 2" }}>
+              <label
+                style={{
+                  fontSize: "14px",
+                  color: "#475569",
+                  marginBottom: "6px",
+                  display: "block",
+                }}
+              >
+                Title
+              </label>
+
+              <input
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="Enter title"
+                className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.title ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
                 />
+                {errors.title && (
+                  <p className="text-xs text-red-500">{errors.title}</p>
+                )}
+            
+            </Box>
 
-                <TaskColumn
-                    title="In Progress"
-                    status="IN_PROGRESS"
-                    tasks={group("IN_PROGRESS")}
-                    onAction={handleTaskAction}
+            {/* DESCRIPTION */}
+            <Box sx={{ gridColumn: "span 2" }}>
+              <label
+                style={{
+                  fontSize: "14px",
+                  color: "#475569",
+                  marginBottom: "6px",
+                  display: "block",
+                }}
+              >
+                Description
+              </label>
+
+              <textarea
+                name="description"
+                rows={4}
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Enter Description"
+                 className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.description ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
                 />
+                {errors.description && (
+                  <p className="text-xs text-red-500">{errors.description}</p>
+                )}
+            </Box>
+          </Box>
+          {/* FOOTER BUTTONS */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "14px",
+              mt: 4,
+            }}
+          >
+            <Button
+              variant="outlined"
+              sx={{
+                borderRadius: "12px",
+                px: 3,
+                color: "#475569",
+                borderColor: "#CBD5E1",
+              }}
+              type="button"
+              onClick={() => { setErrors({}); setOpenGenerateModal(false); }}
+            >
+              Cancel
+            </Button>
 
-                <TaskColumn
-                    title="Completed"
-                    status="COMPLETED"
-                    tasks={group("COMPLETED")}
-                    onAction={handleTaskAction}
-                />
+            <Button
+              variant="contained"
+              type="submit"
+              sx={{
+                borderRadius: "12px",
+                px: 4,
+                backgroundColor: "#FF7A00",
+                "&:hover": { backgroundColor: "#E66E00" },
+              }}
+            >
+              Save
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </div>
+  );
+};
 
-            </div>
-        </div>
-    )
-}
-
-export default Task
+export default Task;

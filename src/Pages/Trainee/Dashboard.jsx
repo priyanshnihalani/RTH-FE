@@ -69,11 +69,11 @@ const TraineeDashboard = () => {
     const [batchId, setBatchId] = useState("mern-jan-2025");
     const [tasks, setTasks] = useState([]);
     const navigate = useNavigate()
-
+    const [user,setUser]=useState()
     const loadMe = async () => {
         const accessToken = Cookie.get("accessToken")
         const result = await ApiService.post("api/users/auth/me", { accessToken })
-        console.log(result)
+        setUser(result)
         if (result?.id) {
             const response = await ApiService.post("api/trainees/getTraineeById", { id: result?.id })
             if (response?.data?.registration?.wantToBoard) {
@@ -82,54 +82,42 @@ const TraineeDashboard = () => {
         }
     }
 
+    const loadTasks = async () => {
+        try {
+          const res = await ApiService.post("/api/task/mytasks", {
+            traineeId:user.id,
+          });
+          setTasks(res);
+          console.log("res",res)
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+
     useEffect(() => {
         loadMe()
     }, [])
 
     useEffect(() => {
         loadTasks();
-    }, [batchId]);
+    }, [user]);
 
-
-    const loadTasks = async () => {
-        const data = SAMPLE_TASKS.filter(
-            task => task.batchId === batchId
-        );
-        setTasks(data);
-    };
-
-
-    const handleTaskAction = (
-        task,
-        forceStatus = null,
-        direction = "forward"
-    ) => {
-        setTasks(prevTasks =>
-            prevTasks.map(t => {
-                if (t.id !== task.id) return t;
-
-                let nextStatus = t.status;
-
-                if (forceStatus) {
-                    nextStatus = forceStatus;
-                }
-                else {
-                    const currentIndex = STATUS_FLOW.indexOf(t.status);
-
-                    if (direction === "forward" && currentIndex < STATUS_FLOW.length - 1) {
-                        nextStatus = STATUS_FLOW[currentIndex + 1];
-                    }
-
-                    if (direction === "backward" && currentIndex > 0) {
-                        nextStatus = STATUS_FLOW[currentIndex - 1];
-                    }
-                }
-
-                return { ...t, status: nextStatus };
-            })
-        );
-    };
-
+    const handleTaskAction = async (task, newStatus) => {
+        try {
+          await ApiService.put(`/api/task/update/status`, {
+            traineeId: user.id,
+            taskId:task.id,
+            newStatus:newStatus,
+          });
+    
+          setTasks((prev) =>
+            prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t))
+          );
+        } catch (err) {
+          toast.error("Status update failed");
+        }
+      };
 
     const group = (status) =>
         tasks.filter(t => t.status === status);
