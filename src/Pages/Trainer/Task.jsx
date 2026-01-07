@@ -8,80 +8,75 @@ import ToastLogo from "../../components/ToastLogo";
 import { useParams } from "react-router-dom";
 import TaskCard from "../../components/TaskCard";
 
-
 const Task = () => {
   const [tasks, setTasks] = useState([]);
   const [errors, setErrors] = useState({});
   const [batchId, setBatchId] = useState("mern-jan-2025");
   const [openGenerateModal, setOpenGenerateModal] = useState(false);
-  const parms = useParams()
-    const [formData, setformData] = useState({
+  const parms = useParams();
+  const [formData, setformData] = useState({
     title: "",
     description: "",
   });
-  console.log("params",parms)
+  console.log("params", parms);
   const handleChange = (e) => {
     setformData({ ...formData, [e.target.name]: e.target.value });
-     setErrors({ ...errors, [e.target.name]: "" });
+    setErrors({ ...errors, [e.target.name]: "" });
   };
-   const validateForm = () => {
+  const validateForm = () => {
     const errors = {};
 
     if (!formData.title || formData.title.trim().length < 3) {
       errors.title = "Task title must be at least 3 characters";
     }
-     if (!formData.description || formData.description.trim().length < 10) {
+    if (!formData.description || formData.description.trim().length < 10) {
       errors.description = "Task description must be at least 10 characters";
     }
     setErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-const handleSubmit = async () => {
-  if (!validateForm()) return;
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
 
-  const payload = {
-    title: formData.title,
-    description: formData.description,
-    ...parms
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      ...parms,
+    };
+
+    try {
+      const res = await ApiService.post("/api/task/assign", payload);
+
+      const newTask = res;
+
+      setTasks((prev) => [...prev, newTask]);
+      console.log("task", tasks);
+      toast.success("Task Created Successfully!");
+      setOpenGenerateModal(false);
+
+      setformData({
+        title: "",
+        description: "",
+      });
+
+      setErrors({});
+    } catch (err) {
+      console.error(err?.response?.data || err);
+      toast.error(err?.response?.data?.message || "Something went wrong!");
+    }
   };
-
-  try {
-    const res = await ApiService.post("/api/task/assign", payload);
-
-    const newTask = res;
-
-    setTasks(prev => [...prev, newTask]);
-    console.log("task",tasks)
-    toast.success("Task Created Successfully!");
-    setOpenGenerateModal(false);
-
-    setformData({
-      title: "",
-      description: "",
-    });
-
-    setErrors({});
-  } catch (err) {
-    console.error(err?.response?.data || err);
-    toast.error(err?.response?.data?.message || "Something went wrong!");
-  }
-};
-
-
 
   const group = (status) => tasks.filter((t) => t.status === status);
 
-
   const STATUS_FLOW = ["ASSIGNED", "IN_PROGRESS", "COMPLETED"];
-
 
   const handleTaskAction = async (task, newStatus) => {
     try {
       await ApiService.put(`/api/task/update/status`, {
         traineeId: task.traineeId,
-        taskId:task.id,
-        newStatus:newStatus,
+        taskId: task.id,
+        newStatus: newStatus,
       });
 
       setTasks((prev) =>
@@ -95,16 +90,16 @@ const handleSubmit = async () => {
   const loadTasks = async () => {
     try {
       const res = await ApiService.post("/api/task/traineetask", {
-        ...parms
+        ...parms,
       });
 
       setTasks(res);
-      console.log("res",res)
+      console.log("res", res);
     } catch (err) {
       console.error(err);
     }
   };
-   useEffect(() => {
+  useEffect(() => {
     loadTasks();
   }, [batchId]);
 
@@ -122,6 +117,7 @@ const handleSubmit = async () => {
       flex justify-between items-center
     "
       >
+          
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Trainer Tasks</h1>
           <p className="text-gray-500">
@@ -132,12 +128,13 @@ const handleSubmit = async () => {
         <h1 className="font-semibold text-gray-700">
           Batch: <span className="font-bold">MERN Batch-2025</span>
         </h1>
-
-        <button
+          <button
           onClick={() => setOpenGenerateModal(true)}
-          className=" z-10 absolute bottom-10 right-10 flex p-4 font-medium cursor-pointer hover:bg-primary-dark text-sm space-x-1 items-center bg-primary text-white  rounded-full"
+          className="absolute top-39 right-65 flex px-4 py-2 font-medium cursor-pointer hover:bg-primary-dark text-sm space-x-1 items-center bg-primary text-white rounded-xl"
+          
         >
           <Plus size={18} />
+          Create Task
         </button>
       </div>
 
@@ -179,19 +176,19 @@ const handleSubmit = async () => {
             e.preventDefault();
             handleSubmit();
           }}
-          
           sx={{
             position: "absolute",
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 720,
+            width: 480,
             bgcolor: "#F7F6F4",
             borderRadius: "20px",
             boxShadow: "0px 20px 60px rgba(0,0,0,0.2)",
-            p: 4,
+            p: 3,
           }}
-          >{/* HEADER */}
+        >
+          {/* HEADER */}
           <Box
             sx={{
               display: "flex",
@@ -231,11 +228,10 @@ const handleSubmit = async () => {
                 className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.title ? "border-red-400" : "border-slate-300"}
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                />
-                {errors.title && (
-                  <p className="text-xs text-red-500">{errors.title}</p>
-                )}
-            
+              />
+              {errors.title && (
+                <p className="text-xs text-red-500">{errors.title}</p>
+              )}
             </Box>
 
             {/* DESCRIPTION */}
@@ -257,13 +253,13 @@ const handleSubmit = async () => {
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Enter Description"
-                 className={`w-full rounded-xl border px-4 py-3 text-sm
+                className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.description ? "border-red-400" : "border-slate-300"}
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                />
-                {errors.description && (
-                  <p className="text-xs text-red-500">{errors.description}</p>
-                )}
+              />
+              {errors.description && (
+                <p className="text-xs text-red-500">{errors.description}</p>
+              )}
             </Box>
           </Box>
           {/* FOOTER BUTTONS */}
@@ -284,7 +280,10 @@ const handleSubmit = async () => {
                 borderColor: "#CBD5E1",
               }}
               type="button"
-              onClick={() => { setErrors({}); setOpenGenerateModal(false); }}
+              onClick={() => {
+                setErrors({});
+                setOpenGenerateModal(false);
+              }}
             >
               Cancel
             </Button>
