@@ -83,7 +83,7 @@ export default function Register() {
     return (
         <>
             {loading && <BlockingLoader />}
-            <div className="min-h-screen bg-gradient-to-br from-[#f5faff] via-white to-[#eef6ff] relative overflow-hidden">
+            <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-50 to-white relative overflow-hidden">
 
                 {/* Top Bar */}
                 <div className="flex justify-between items-center px-10 py-6">
@@ -94,9 +94,64 @@ export default function Register() {
                         Rover Training Hub
                     </div>
 
-                    <button className="flex items-center gap-2 bg-[#FB8924] text-white px-5 py-2 rounded-lg shadow hover:bg-[#FBBB17] transition">
-                        <Phone size={15} /> Contact Support
-                    </button>
+                    <div className="relative inline-block group">
+                        {/* BUTTON */}
+                        <button
+                            className="
+    relative
+    flex items-center gap-2
+    px-4 h-10
+    rounded-xl
+    text-white font-medium text-sm
+    bg-gradient-to-r from-primary to-primary-dark
+    shadow-md shadow-orange-200
+    hover:shadow-lg hover:shadow-orange-300
+    hover:scale-[1.03]
+    active:scale-[0.97]
+    transition-all duration-200 ease-out
+    cursor-pointer
+  "
+                        >
+                            <Phone size={15} className="animate-pulse" />
+                            Contact Support
+                        </button>
+
+                        {/* HOVER CARD */}
+                        <div
+                            className="
+      absolute
+      left-[0%] -translate-x-1/2
+      mt-3
+      mx-11
+      w-64
+      bg-white
+      rounded-xl
+      shadow-lg
+      border
+      p-4
+      text-sm
+      text-gray-700
+      opacity-0
+      invisible
+      group-hover:opacity-100
+      group-hover:visible
+      transition
+      duration-200
+      z-50
+    "
+                        >
+                            <p className="text-gray-600 ">
+                                <span className="font-bold">Designation:</span> Team Lead
+                            </p>
+                            <p className="font-semibold text-gray-900 mt-1">
+                                <span className="font-bold">Name:</span> Pradip Kor
+                            </p>
+                            <p className="text-gray-600 mt-1">
+                                <span className="font-bold">Phone:</span> +91 9033901431
+                            </p>
+                        </div>
+                    </div>
+
                 </div>
 
                 {/* Main Section */}

@@ -3,70 +3,8 @@ import TaskColumn from "../../components/TaskColumn";
 import { ApiService } from "../../Services/ApiService";
 import Cookie from "js-cookie"
 import { replace, useNavigate } from "react-router-dom";
-// import { getTasksByBatch, updateTaskStatus } from "../services/taskApi";
-const SAMPLE_TASKS = [
-    {
-        id: 1,
-        title: "API Integration with Node.js",
-        description: "Connect React frontend with Node/Express backend APIs.",
-        status: "ASSIGNED",
-        trainerName: "Sarah Connor",
-        dueDate: "Jan 24",
-        batchId: "mern-jan-2025",
-    },
-    {
-        id: 2,
-        title: "Advanced CSS Layouts",
-        description: "Build responsive layouts using Flexbox and Grid.",
-        status: "ASSIGNED",
-        trainerName: "Mike Ross",
-        dueDate: "Jan 28",
-        batchId: "mern-jan-2025",
-    },
-    {
-        id: 3,
-        title: "React Components Deep Dive",
-        description: "Understand props, state, and lifecycle methods.",
-        status: "IN_PROGRESS",
-        trainerName: "David Chen",
-        dueDate: "Jan 26",
-        batchId: "mern-jan-2025",
-    },
-    {
-        id: 4,
-        title: "State Management with Redux",
-        description: "Redux flow, store, reducers, and Redux Toolkit.",
-        status: "IN_PROGRESS",
-        trainerName: "Sarah Connor",
-        dueDate: "Jan 30",
-        batchId: "mern-jan-2025",
-    },
-    {
-        id: 5,
-        title: "Introduction to Git",
-        description: "Git basics, branching, and merge conflict resolution.",
-        status: "COMPLETED",
-        trainerName: "David Chen",
-        dueDate: "Jan 20",
-        batchId: "mern-jan-2025",
-    },
-
-    // Second batch (to prove batch-wise filtering works)
-    {
-        id: 6,
-        title: "React Hooks Basics",
-        description: "useState, useEffect, and custom hooks.",
-        status: "ASSIGNED",
-        trainerName: "Alex Morgan",
-        dueDate: "Feb 10",
-        batchId: "react-feb-2025",
-    },
-];
-
-const STATUS_FLOW = ["ASSIGNED", "IN_PROGRESS", "COMPLETED"];
 
 const TraineeDashboard = () => {
-    const [batchId, setBatchId] = useState("mern-jan-2025");
     const [tasks, setTasks] = useState([]);
     const navigate = useNavigate()
     const [user,setUser]=useState()
@@ -148,7 +86,7 @@ const TraineeDashboard = () => {
 
             {/* KANBAN */}
             <div className="
-      px-8 pb-12
+      px-8 pb-12 min-h-screen h-auto
       grid grid-cols-1 md:grid-cols-3 gap-10
     ">
                 <TaskColumn
