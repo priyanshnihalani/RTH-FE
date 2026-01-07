@@ -93,7 +93,7 @@ const Login = () => {
     return (
         <>
             {loading && <BlockingLoader />}
-            <div class="font-[Inter] bg-slate-50 font-display text-slate-900 min-h-screen  flex flex-col">
+            <div class="overflow-hidden font-[Inter] bg-slate-50 font-display text-slate-900 min-h-screen  flex flex-col">
                 <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                     <div class="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] bg-orange-100 rounded-full blur-3xl opacity-70 mix-blend-multiply animate-[pulse_8s_ease-in-out_infinite]"></div>
                     <div class="absolute top-[20%] right-[10%] w-[35vw] h-[35vw] bg-slate-100 rounded-full blur-3xl opacity-80 mix-blend-multiply"></div>
@@ -117,12 +117,63 @@ const Login = () => {
                                 <h2 class="text-lg font-bold tracking-tight text-slate-800">Rover Training Hub</h2>
                             </div>
                             <div class="hidden sm:flex items-center gap-4">
-                                <button class="flex items-center justify-center rounded-lg h-9 px-4 bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors shadow-lg shadow-orange-200/50 hover:shadow-orange-300">
-                                    <Phone size={15} />
-                                    <span className="ml-2">
+                                <div className="relative inline-block group">
+                                    {/* BUTTON */}
+                                    <button
+                                        className="
+    relative
+    flex items-center gap-2
+    px-4 h-10
+    rounded-xl
+    text-white font-medium text-sm
+    bg-gradient-to-r from-primary to-primary-dark
+    shadow-md shadow-orange-200
+    hover:shadow-lg hover:shadow-orange-300
+    hover:scale-[1.03]
+    active:scale-[0.97]
+    transition-all duration-200 ease-out
+    cursor-pointer
+  "
+                                    >
+                                        <Phone size={15} className="animate-pulse" />
                                         Contact Support
-                                    </span>
-                                </button>
+                                    </button>
+
+
+                                    {/* HOVER CARD */}
+                                    <div
+                                        className="
+      absolute
+      left-[30%] -translate-x-1/2
+      mt-3
+      w-64
+      bg-white
+      rounded-xl
+      shadow-lg
+      border
+      p-4
+      text-sm
+      text-gray-700
+      opacity-0
+      invisible
+      group-hover:opacity-100
+      group-hover:visible
+      transition
+      duration-200
+      z-50
+    "
+                                    >
+                                        <p className="text-gray-600 ">
+                                            <span className="font-bold">Designation:</span> Team Lead
+                                        </p>
+                                        <p className="font-semibold text-gray-900 mt-1">
+                                            <span className="font-bold">Name:</span> Pradip Kor
+                                        </p>
+                                        <p className="text-gray-600 mt-1">
+                                            <span className="font-bold">Phone:</span> +91 9033901431
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </header>
                     </div>
