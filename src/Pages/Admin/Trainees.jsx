@@ -83,6 +83,7 @@ const Trainee = () => {
         wantToBoard: t.registration?.wantToBoard,
       }));
 
+    console.log(normalized)
     setTrainees(normalized);
     setLoading(false);
   };
@@ -104,7 +105,7 @@ const Trainee = () => {
       name: t.name || "",
       education: t.education || "",
       college: t.college || "",
-      batches: t.batches || [],
+      batches: t.batches?.map(b => b.id) || [], 
       remainingFee: t.remainingFee ?? 0,
       admissionStatus: t.admissionStatus || "pending",
       trainingStatus: t.trainingStatus || "not_started",
@@ -123,7 +124,6 @@ const Trainee = () => {
   const updateDraft = (field, value) =>
     setDraft((prev) => ({ ...prev, [field]: value }));
 
-  /* ---------- SAVE ---------- */
   const saveTrainee = async (userId) => {
     setLoading(true);
     await ApiService.put(`/api/trainees/update/${userId}`, draft);
@@ -259,7 +259,7 @@ const Trainee = () => {
 
   const handleGeneratecertificate = async () => {
     if (!validatecertificateForm()) return;
-   
+
   };
 
   return (
@@ -358,11 +358,10 @@ const Trainee = () => {
                       <TableCell>
                         {isEdit ? (
                           <Select
-                            multiple
                             size="small"
-                            value={draft.batches}
+                            value={draft.batches?.[0]}
                             onChange={(e) =>
-                              updateDraft("batches", e.target.value)
+                              updateDraft("batches", [e.target.value])
                             }
                           >
                             {batches.map((b) => (
@@ -472,8 +471,8 @@ const Trainee = () => {
                             ))}
                           </Select>
                         ) : ConstantService.YesNo.find(
-                            (s) => s.value === t.certificateIssued
-                          )?.label || t.certificateIssued ? (
+                          (s) => s.value === t.certificateIssued
+                        )?.label || t.certificateIssued ? (
                           "Yes"
                         ) : (
                           "No"
@@ -735,399 +734,393 @@ const Trainee = () => {
           </TableContainer>
         </div>
       </div>
-      {generateType ==="certificate" && (
-         <Modal
-        open={openGenerateModal}
-        onClose={() => setOpenGenerateModal(false)}
-        title="Generate Certificate"
-      >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleGeneratecertificate();
-          }}
-          className="space-y-6 animate-in fade-in zoom-in-95 duration-200"
+      {generateType === "certificate" && (
+        <Modal
+          open={openGenerateModal}
+          onClose={() => setOpenGenerateModal(false)}
+          title="Generate Certificate"
         >
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {/* Joining Date */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-600">
-                  EndDate
-                </label>
-                <input
-                  type="date"
-                  value={certificate.EndDate || ""}
-                  onChange={(e) =>
-                    handleChangecertificate("EndDate", e.target.value)
-                  }
-                  className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.EndDate
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleGeneratecertificate();
+            }}
+            className="space-y-6 animate-in fade-in zoom-in-95 duration-200"
+          >
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Joining Date */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    EndDate
+                  </label>
+                  <input
+                    type="date"
+                    value={certificate.EndDate || ""}
+                    onChange={(e) =>
+                      handleChangecertificate("EndDate", e.target.value)
+                    }
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.EndDate
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                />
-                {errors.EndDate && (
-                  <p className="text-xs text-red-500">{errors.EndDate}</p>
-                )}
-              </div>
+                  />
+                  {errors.EndDate && (
+                    <p className="text-xs text-red-500">{errors.EndDate}</p>
+                  )}
+                </div>
 
-              {/* Name */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-600">
-                  Name
-                </label>
-                <input
-                  value={certificate.Name || ""}
-                  onChange={(e) =>
-                    handleChangecertificate("Name", e.target.value)
-                  }
-                  className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.Name
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+                {/* Name */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    Name
+                  </label>
+                  <input
+                    value={certificate.Name || ""}
+                    onChange={(e) =>
+                      handleChangecertificate("Name", e.target.value)
+                    }
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.Name
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                />
-                {errors.Name && (
-                  <p className="text-xs text-red-500">{errors.Name}</p>
-                )}
-              </div>
+                  />
+                  {errors.Name && (
+                    <p className="text-xs text-red-500">{errors.Name}</p>
+                  )}
+                </div>
 
-              {/* Duration */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-600">
-                  Duration
-                </label>
+                {/* Duration */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    Duration
+                  </label>
 
-                <select
-                  value={certificate.duration || ""}
-                  onChange={(e) =>
-                    handleChangecertificate("duration", e.target.value)
-                  }
-                  className={`w-full rounded-xl border px-4 py-3 text-sm
+                  <select
+                    value={certificate.duration || ""}
+                    onChange={(e) =>
+                      handleChangecertificate("duration", e.target.value)
+                    }
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
       ${errors.duration ? "border-red-400" : "border-slate-300"}
       bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                >
-                  <option value="">Select duration</option>
-                  {ConstantService.Duration.map((tech) => (
-                    <option key={tech.value} value={tech.value}>
-                      {tech.label}
-                    </option>
-                  ))}
-                </select>
+                  >
+                    <option value="">Select duration</option>
+                    {ConstantService.Duration.map((tech) => (
+                      <option key={tech.value} value={tech.value}>
+                        {tech.label}
+                      </option>
+                    ))}
+                  </select>
 
-                {errors.duration && (
-                  <p className="text-xs text-red-500">{errors.duration}</p>
-                )}
-              </div>
+                  {errors.duration && (
+                    <p className="text-xs text-red-500">{errors.duration}</p>
+                  )}
+                </div>
 
-              {/* Technology */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-600">
-                  Technology
-                </label>
-                <select
-                  name="technology"
-                  value={certificate.technology}
-                  onChange={(e) =>
-                    handleChangecertificate("technology", e.target.value)
-                  }
-                  className={`w-full rounded-xl border px-4 py-3 text-sm
-                          ${
-                            errors.technology
-                              ? "border-red-400"
-                              : "border-slate-300"
-                          }
+                {/* Technology */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    Technology
+                  </label>
+                  <select
+                    name="technology"
+                    value={certificate.technology}
+                    onChange={(e) =>
+                      handleChangecertificate("technology", e.target.value)
+                    }
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
+                          ${errors.technology
+                        ? "border-red-400"
+                        : "border-slate-300"
+                      }
                           bg-white text-slate-800
                           focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40 transition`}
-                >
-                  <option value="">Select technology</option>
-                  {ConstantService.Technologys.map((tech) => (
-                    <option key={tech.value} value={tech.value}>
-                      {tech.label}
-                    </option>
-                  ))}
-                </select>
-                {errors.technology && (
-                  <p className="text-xs text-red-500">{errors.technology}</p>
-                )}
+                  >
+                    <option value="">Select technology</option>
+                    {ConstantService.Technologys.map((tech) => (
+                      <option key={tech.value} value={tech.value}>
+                        {tech.label}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.technology && (
+                    <p className="text-xs text-red-500">{errors.technology}</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* -------- ACTIONS -------- */}
-          <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-slate-200">
-            <button
-              type="button"
-              onClick={() => {
-                setErrors({});
-                setOpenGenerateModal(false);
-              }}
-              className="
+            {/* -------- ACTIONS -------- */}
+            <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setErrors({});
+                  setOpenGenerateModal(false);
+                }}
+                className="
       px-5 py-2 text-sm rounded-xl
       border border-slate-300
       text-slate-700
       hover:bg-slate-100
       transition
     "
-            >
-              Cancel
-            </button>
+              >
+                Cancel
+              </button>
 
-            <button
-              type="submit"
-              className="
+              <button
+                type="submit"
+                className="
       px-5 py-2 text-sm font-semibold rounded-xl
       bg-gradient-to-r from-[#FB8924] to-[#f27f1c]
       text-white shadow-md
       transition active:scale-95
     "
-            >
-              Save
-            </button>
-          </div>
-        </form>
-      </Modal>
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
       {generateType === "offer" && (
-            <Modal
-        open={openGenerateModal}
-        onClose={() => setOpenGenerateModal(false)}
-        title="Generate Offer Letter"
-      >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleGenerateOfferLetter();
-          }}
-          className="space-y-6 animate-in fade-in zoom-in-95 duration-200"
+        <Modal
+          open={openGenerateModal}
+          onClose={() => setOpenGenerateModal(false)}
+          title="Generate Offer Letter"
         >
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {/* Joining Date */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-600">
-                  Joining Date
-                </label>
-                <input
-                  type="date"
-                  value={offerForm.joinedAt || ""}
-                  onChange={(e) => handleChange("joinedAt", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.joinedAt
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleGenerateOfferLetter();
+            }}
+            className="space-y-6 animate-in fade-in zoom-in-95 duration-200"
+          >
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Joining Date */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    Joining Date
+                  </label>
+                  <input
+                    type="date"
+                    value={offerForm.joinedAt || ""}
+                    onChange={(e) => handleChange("joinedAt", e.target.value)}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.joinedAt
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                />
-                {errors.joinedAt && (
-                  <p className="text-xs text-red-500">{errors.joinedAt}</p>
-                )}
-              </div>
+                  />
+                  {errors.joinedAt && (
+                    <p className="text-xs text-red-500">{errors.joinedAt}</p>
+                  )}
+                </div>
 
-              {/* Name */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-600">
-                  Name
-                </label>
-                <input
-                  value={offerForm.name || ""}
-                  onChange={(e) => handleChange("name", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.name
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+                {/* Name */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    Name
+                  </label>
+                  <input
+                    value={offerForm.name || ""}
+                    onChange={(e) => handleChange("name", e.target.value)}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.name
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                />
-                {errors.name && (
-                  <p className="text-xs text-red-500">{errors.name}</p>
-                )}
-              </div>
+                  />
+                  {errors.name && (
+                    <p className="text-xs text-red-500">{errors.name}</p>
+                  )}
+                </div>
 
-              {/* First Name */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-600">
-                  First Name
-                </label>
-                <input
-                  value={offerForm.firstName || ""}
-                  onChange={(e) => handleChange("firstName", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm
+                {/* First Name */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    First Name
+                  </label>
+                  <input
+                    value={offerForm.firstName || ""}
+                    onChange={(e) => handleChange("firstName", e.target.value)}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.firstName ? "border-red-400" : "border-slate-300"}
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                />
-                {errors.firstName && (
-                  <p className="text-xs text-red-500">{errors.firstName}</p>
-                )}
-              </div>
+                  />
+                  {errors.firstName && (
+                    <p className="text-xs text-red-500">{errors.firstName}</p>
+                  )}
+                </div>
 
-              {/* Duration */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-600">
-                  Duration
-                </label>
-                <input
-                  value={offerForm.duration || ""}
-                  onChange={(e) => handleChange("duration", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm
+                {/* Duration */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    Duration
+                  </label>
+                  <input
+                    value={offerForm.duration || ""}
+                    onChange={(e) => handleChange("duration", e.target.value)}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.duration ? "border-red-400" : "border-slate-300"}
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                />
-                {errors.duration && (
-                  <p className="text-xs text-red-500">{errors.duration}</p>
-                )}
-              </div>
+                  />
+                  {errors.duration && (
+                    <p className="text-xs text-red-500">{errors.duration}</p>
+                  )}
+                </div>
 
-              {/* Technology */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-600">
-                  Technology
-                </label>
-                <input
-                  value={offerForm.technology || ""}
-                  onChange={(e) => handleChange("technology", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm
+                {/* Technology */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    Technology
+                  </label>
+                  <input
+                    value={offerForm.technology || ""}
+                    onChange={(e) => handleChange("technology", e.target.value)}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.technology ? "border-red-400" : "border-slate-300"}
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-                />
-                {errors.technology && (
-                  <p className="text-xs text-red-500">{errors.technology}</p>
-                )}
-              </div>
+                  />
+                  {errors.technology && (
+                    <p className="text-xs text-red-500">{errors.technology}</p>
+                  )}
+                </div>
 
-              {/* Compensation */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-600">
-                  Compensation
-                </label>
-                <input
-                  value={offerForm.compensation || ""}
-                  onChange={(e) => handleChange("compensation", e.target.value)}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm
+                {/* Compensation */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    Compensation
+                  </label>
+                  <input
+                    value={offerForm.compensation || ""}
+                    onChange={(e) => handleChange("compensation", e.target.value)}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.compensation ? "border-red-400" : "border-slate-300"}
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                  />
+                  {errors.compensation && (
+                    <p className="text-xs text-red-500">{errors.compensation}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Signer Name
+                </label>
+                <input
+                  value={offerForm.signerName || ""}
+                  onChange={(e) => handleChange("signerName", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.signerName ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
                 />
-                {errors.compensation && (
-                  <p className="text-xs text-red-500">{errors.compensation}</p>
+                {errors.signerName && (
+                  <p className="text-xs text-red-500">{errors.signerName}</p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Signer Designation
+                </label>
+                <input
+                  value={offerForm.signerDesignation || ""}
+                  onChange={(e) =>
+                    handleChange("signerDesignation", e.target.value)
+                  }
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.signerDesignation ? "border-red-400" : "border-slate-300"
+                    }
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.signerDesignation && (
+                  <p className="text-xs text-red-500">
+                    {errors.signerDesignation}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Contact Person
+                </label>
+                <input
+                  value={offerForm.contactPerson || ""}
+                  onChange={(e) => handleChange("contactPerson", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.contactPerson ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.contactPerson && (
+                  <p className="text-xs text-red-500">{errors.contactPerson}</p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600">
+                  Signer Mobile No
+                </label>
+                <input
+                  value={offerForm.signerMobile || ""}
+                  onChange={(e) => handleChange("signerMobile", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.signerMobile ? "border-red-400" : "border-slate-300"}
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                />
+                {errors.signerMobile && (
+                  <p className="text-xs text-red-500">{errors.signerMobile}</p>
                 )}
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-600">
-                Signer Name
-              </label>
-              <input
-                value={offerForm.signerName || ""}
-                onChange={(e) => handleChange("signerName", e.target.value)}
-                className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.signerName ? "border-red-400" : "border-slate-300"}
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-              />
-              {errors.signerName && (
-                <p className="text-xs text-red-500">{errors.signerName}</p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-600">
-                Signer Designation
-              </label>
-              <input
-                value={offerForm.signerDesignation || ""}
-                onChange={(e) =>
-                  handleChange("signerDesignation", e.target.value)
-                }
-                className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.signerDesignation ? "border-red-400" : "border-slate-300"
-              }
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-              />
-              {errors.signerDesignation && (
-                <p className="text-xs text-red-500">
-                  {errors.signerDesignation}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-600">
-                Contact Person
-              </label>
-              <input
-                value={offerForm.contactPerson || ""}
-                onChange={(e) => handleChange("contactPerson", e.target.value)}
-                className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.contactPerson ? "border-red-400" : "border-slate-300"}
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-              />
-              {errors.contactPerson && (
-                <p className="text-xs text-red-500">{errors.contactPerson}</p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-600">
-                Signer Mobile No
-              </label>
-              <input
-                value={offerForm.signerMobile || ""}
-                onChange={(e) => handleChange("signerMobile", e.target.value)}
-                className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.signerMobile ? "border-red-400" : "border-slate-300"}
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
-              />
-              {errors.signerMobile && (
-                <p className="text-xs text-red-500">{errors.signerMobile}</p>
-              )}
-            </div>
-          </div>
-
-          {/* -------- ACTIONS -------- */}
-          <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-slate-200">
-            <button
-              type="button"
-              onClick={() => {
-                setErrors({});
-                setOpenGenerateModal(false);
-              }}
-              className="
+            {/* -------- ACTIONS -------- */}
+            <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setErrors({});
+                  setOpenGenerateModal(false);
+                }}
+                className="
       px-5 py-2 text-sm rounded-xl
       border border-slate-300
       text-slate-700
       hover:bg-slate-100
       transition
     "
-            >
-              Cancel
-            </button>
+              >
+                Cancel
+              </button>
 
-            <button
-              type="submit"
-              className="
+              <button
+                type="submit"
+                className="
       px-5 py-2 text-sm font-semibold rounded-xl
       bg-gradient-to-r from-[#FB8924] to-[#f27f1c]
       text-white shadow-md
       transition active:scale-95
     "
-            >
-              Save
-            </button>
-          </div>
-        </form>
-      </Modal>
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
-  
+
     </>
   );
 };

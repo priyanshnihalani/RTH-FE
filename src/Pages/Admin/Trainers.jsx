@@ -27,7 +27,6 @@ const Trainers = () => {
   const [openAdd, setOpenAdd] = useState(false);
   const [editingTrainer, setEditingTrainer] = useState(null);
   const [loading, setLoading] = useState(false)
-  /* -------------------- FETCH DATA -------------------- */
   const fetchAllTrainers = async () => {
     try {
       const result = await ApiService.get("/api/trainer/getAll");
@@ -198,21 +197,14 @@ const Trainers = () => {
         </div>
 
         {/* ================= TABLE ================= */}
-        <div
-          className="
-      bg-white/70 backdrop-blur-xl
-      rounded-3xl p-4
-      border border-white/40
-      shadow-[0_20px_60px_rgba(0,0,0,0.06)]
-    "
-        >
+        <div>
           <TableContainer
             className="overflow-x-scroll"
             component={Paper}
             elevation={0}
             sx={{
               backgroundColor: "transparent",
-              borderRadius: 8,
+              borderRadius: 6,
             }}
           >
             <Table size="small">
@@ -248,7 +240,7 @@ const Trainers = () => {
 
               <TableBody>
                 {filteredTrainers.map((trainer) => (
-                  <TableRow key={trainer.id} hover>
+                  <TableRow key={trainer.id} hover sx={{background: "white"}}>
                     <TableCell>{trainer.name}</TableCell>
                     <TableCell>{trainer.email}</TableCell>
 
