@@ -23,6 +23,7 @@ import { Label } from "@mui/icons-material";
 import Modal from "../../components/Modal";
 import ConstantService from "../../Services/ConstantService";
 import dayjs from "dayjs";
+import calculateEndDate from "../../Services/CalculateEndDate";
 
 const Trainee = () => {
   const navigate = useNavigate();
@@ -47,11 +48,14 @@ const Trainee = () => {
     contactPerson: "",
     signerMobile: "",
   });
-  const [certificate, setcertificate] = useState({
-    EndDate: "",
-    Name: "",
+
+  const [certificate, setCertificate] = useState({
+    joinedDate: "",
+    endDate: "",
+    name: "",
     duration: "",
-    technology: "",
+    batch: [],
+    manager: ""
   });
 
   const [errors, setErrors] = useState({});
@@ -105,7 +109,7 @@ const Trainee = () => {
       name: t.name || "",
       education: t.education || "",
       college: t.college || "",
-      batches: t.batches?.map(b => b.id) || [], 
+      batches: t.batches?.map(b => b.id) || [],
       remainingFee: t.remainingFee ?? 0,
       admissionStatus: t.admissionStatus || "pending",
       trainingStatus: t.trainingStatus || "not_started",
@@ -232,35 +236,102 @@ const Trainee = () => {
     }
   };
   const handleChangecertificate = (key, value) => {
-    setcertificate((prev) => ({ ...prev, [key]: value }));
+    setCertificate((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
   const validatecertificateForm = () => {
     const errors = {};
 
-    if (!certificate.EndDate) {
-      errors.EndDate = "EndDate is required";
+    if (!certificate.endDate) {
+      errors.endDate = "EndDate is required";
     }
 
-    if (!certificate.Name || certificate.Name.trim().length < 3) {
-      errors.Name = "Name must be at least 3 characters";
+    if (!certificate.joinedDate) {
+      errors.joinedDate = "JoinedDate is required";
+    }
+
+    if (!certificate.name || certificate.name.trim().length < 3) {
+      errors.name = "Name must be at least 3 characters";
     }
     if (!certificate.duration) {
       errors.duration = "Duration is required";
     }
 
-    if (!certificate.technology) {
-      errors.technology = "Technology is required";
+    if (!certificate.batch) {
+      errors.batch = "Batch is required";
     }
+
+    if (!certificate.manager) {
+      errors.manager = "Manager is required";
+    }
+
     setErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleGeneratecertificate = async () => {
     if (!validatecertificateForm()) return;
+    const { joinedDate, endDate, batch, manager, duration, name } = certificate
+    console.log({ joinedDate, endDate, batch, manager, duration, name })
+    try {
+      setLoading(true);
 
+      const buffer = await ApiService.post(
+        "/api/generateOfferLetter/certificate_generation",
+        certificate,
+        {
+          responseType: "blob",
+        }
+      );
+
+      const pdfBlob = new Blob([buffer], {
+        type: "application/pdf",
+      });
+
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+
+      link.href = pdfUrl;
+      link.download = "Certificate.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(pdfUrl);
+
+      setOpenGenerateModal(false);
+      setErrors({});
+    } catch (error) {
+      console.error("Certificate generation failed", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const tableColumns = [
+    { label: "Name", width: 180 },
+    { label: "Degree", width: 120 },
+    { label: "College", width: 200 },
+    { label: "Batch", width: 200 },
+    { label: "Remaining Fees", width: 160 },
+    { label: "Admission", width: 130 },
+    { label: "Training", width: 130 },
+    { label: "Duration", width: 120 },
+    { label: "Certificate", width: 140 },
+    { label: "Shift", width: 100 },
+    { label: "WantToBoard", width: 140 },
+    { label: "JoiningDate", width: 130 },
+    { label: "EndDate", width: 130 },
+    { label: "Technologys", width: 200 },
+    { label: "NDA", width: 90 },
+    { label: "Aadhaar", width: 110 },
+    { label: "Remarks", width: 200 },
+    { label: "Notes", width: 200 },
+    { label: "Actions", width: 140 },
+    { label: "Generate", width: 130 },
+  ];
+
 
   return (
     <>
@@ -279,29 +350,18 @@ const Trainee = () => {
             <Table size="small" sx={{ minWidth: 1400 }}>
               <TableHead sx={{ background: "#FB8924" }}>
                 <TableRow>
-                  {[
-                    "Name",
-                    "Degree",
-                    "College",
-                    "Batch",
-                    "Remaining Fees",
-                    "Admission",
-                    "Training",
-                    "Duration",
-                    "Certificate",
-                    "Shift",
-                    "WantToBoard",
-                    "JoiningDate",
-                    "Technologys",
-                    "NDA",
-                    "Aadhaar",
-                    "Remarks",
-                    "Notes",
-                    "Actions",
-                    "Generate",
-                  ].map((h) => (
-                    <TableCell key={h} sx={{ color: "#fff", fontWeight: 600 }}>
-                      {h}
+                  {tableColumns.map((col) => (
+                    <TableCell
+                      key={col.label}
+                      sx={{
+                        color: "#fff",
+                        fontWeight: 600,
+                        width: col.width,
+                        minWidth: col.width,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {col.label}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -540,6 +600,14 @@ const Trainee = () => {
                       </TableCell>
 
                       <TableCell>
+                        <div>
+                          {t.joinedDate && t.duration ? calculateEndDate(t.joinedDate, t.duration).displaydate : (
+                            "-"
+                          )}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
                         {isEdit ? (
                           <Select
                             size="small"
@@ -676,11 +744,12 @@ const Trainee = () => {
                             onClick={() => {
                               setGenerateType("certificate");
                               setSelectedTrainee(t);
-                              setcertificate({
-                                EndDate: "",
-                                Name: "",
-                                duration: "",
-                                technology: "",
+                              setCertificate({
+                                joinedDate: t.joinedDate,
+                                endDate: t.joinedDate && t.duration ? calculateEndDate(t.joinedDate, t.duration).datepicker : "",
+                                name: t.name,
+                                duration: t.duration,
+                                batch: t?.batches[0].name,
                               });
                               setOpenGenerateModal(true);
                             }}
@@ -752,23 +821,45 @@ const Trainee = () => {
                 {/* Joining Date */}
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-slate-600">
-                    EndDate
+                    JoinedDate
                   </label>
                   <input
                     type="date"
-                    value={certificate.EndDate || ""}
+                    value={certificate.joinedDate || ""}
                     onChange={(e) =>
-                      handleChangecertificate("EndDate", e.target.value)
+                      handleChangecertificate("joinedDate", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.EndDate
+              ${errors.joinedDate
                         ? "border-red-400 animate-shake"
                         : "border-slate-300"
                       }
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
                   />
-                  {errors.EndDate && (
-                    <p className="text-xs text-red-500">{errors.EndDate}</p>
+                  {errors.joinedDate && (
+                    <p className="text-xs text-red-500">{errors.joinedDate}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    EndDate
+                  </label>
+                  <input
+                    type="date"
+                    value={certificate.endDate || ""}
+                    onChange={(e) =>
+                      handleChangecertificate("endDate", e.target.value)
+                    }
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.endDate
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                  />
+                  {errors.endDate && (
+                    <p className="text-xs text-red-500">{errors.endDate}</p>
                   )}
                 </div>
 
@@ -778,19 +869,19 @@ const Trainee = () => {
                     Name
                   </label>
                   <input
-                    value={certificate.Name || ""}
+                    value={certificate.name || ""}
                     onChange={(e) =>
-                      handleChangecertificate("Name", e.target.value)
+                      handleChangecertificate("name", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.Name
+              ${errors.name
                         ? "border-red-400 animate-shake"
                         : "border-slate-300"
                       }
               bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
                   />
-                  {errors.Name && (
-                    <p className="text-xs text-red-500">{errors.Name}</p>
+                  {errors.name && (
+                    <p className="text-xs text-red-500">{errors.name}</p>
                   )}
                 </div>
 
@@ -822,16 +913,16 @@ const Trainee = () => {
                   )}
                 </div>
 
-                {/* Technology */}
+                {/* Batches */}
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-slate-600">
-                    Technology
+                    Batches
                   </label>
                   <select
-                    name="technology"
-                    value={certificate.technology}
+                    name="batch"
+                    value={certificate?.batch || "Select Batch"}
                     onChange={(e) =>
-                      handleChangecertificate("technology", e.target.value)
+                      handleChangecertificate("batch", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
                           ${errors.technology
@@ -841,17 +932,39 @@ const Trainee = () => {
                           bg-white text-slate-800
                           focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40 transition`}
                   >
-                    <option value="">Select technology</option>
-                    {ConstantService.Technologys.map((tech) => (
-                      <option key={tech.value} value={tech.value}>
-                        {tech.label}
+                    <option value="">Select Batch</option>
+                    {batches.map((tech) => (
+                      <option key={tech.name} value={tech.name}>
+                        {tech.name}
                       </option>
                     ))}
                   </select>
-                  {errors.technology && (
-                    <p className="text-xs text-red-500">{errors.technology}</p>
+                  {errors.batch && (
+                    <p className="text-xs text-red-500">{errors.batch}</p>
                   )}
                 </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">
+                    Manager
+                  </label>
+                  <input
+                    value={certificate.manager || ""}
+                    onChange={(e) =>
+                      handleChangecertificate("manager", e.target.value)
+                    }
+                    className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${errors.manager
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
+              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                  />
+                  {errors.manager && (
+                    <p className="text-xs text-red-500">{errors.manager}</p>
+                  )}
+                </div>
+
               </div>
             </div>
 

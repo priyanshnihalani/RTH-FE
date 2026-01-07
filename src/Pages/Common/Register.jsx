@@ -65,7 +65,7 @@ export default function Register() {
             const { waitingToken } = res;
 
             Cookies.set("waitingToken", waitingToken, {
-                expires: 1,       
+                expires: 365,
                 sameSite: "lax",
             });
 
