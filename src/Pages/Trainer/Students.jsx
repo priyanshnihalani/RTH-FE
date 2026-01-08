@@ -42,7 +42,7 @@ const Students = () => {
                             ...item,
                             batch: res.name,
                             batchId: res.id,
-                            taskStats: statusCount, 
+                            taskStats: statusCount,
                         };
                     })
                 );
@@ -55,8 +55,6 @@ const Students = () => {
         fetchData();
     }, [params.id]);
 
-    const studentCount = students?.length ?? 0;
-    const skeletonCount = Math.max(0, count - studentCount);
 
     return (
         <div className="min-h-screen bg-linear-to-br from-orange-50 via-white to-orange-100 p-6 space-y-6">
@@ -72,15 +70,24 @@ const Students = () => {
             </div>
 
             {/* STUDENT GRID */}
-            <div ref={gridRef} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 ">
+            {students?.length > 0 ?
+                < div ref={gridRef} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 ">
 
-                {students?.map((student) => (
-                    <StudentCard key={student.user_id} student={{ ...student, trainerId }} />
-                ))}
+                    {students?.map((student) => (
+                        <StudentCard key={student.user_id} student={{ ...student, trainerId }} />
+                    ))}
 
-            </div>
 
-        </div>
+
+                </div>
+                :
+
+                <div className="flex min-h-[50vh] text-2xl items-center justify-center w-full">
+                    <h1>No Data Available</h1>
+                </div>
+            }
+
+        </div >
     );
 }
 
