@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ApiService } from "../../Services/ApiService";
 import Modal from "../../components/Modal";
 import { toast } from "react-toastify";
+import ToastLogo from "../../components/ToastLogo";
 
 const DeleteBatchModal = ({ open, onClose, batch, onSuccess }) => {
   const [submitting, setSubmitting] = useState(false);
@@ -9,17 +10,27 @@ const DeleteBatchModal = ({ open, onClose, batch, onSuccess }) => {
   const handleDelete = async () => {
     try {
       setSubmitting(true);
-
-      await ApiService.delete(
+      const res = await ApiService.delete(
         `/api/batch/deleteBatch/${batch?.id}`
       );
-
-      toast.success("Batch deleted successfully");
+      toast.success("Batch deleted successfully", {
+                icon: <ToastLogo />,
+                style: {
+                  color: "#16a34a",
+                },
+                autoClose: 2000,
+              });
       onSuccess();
       onClose();
 
     } catch (error) {
-      toast.error("Failed to delete batch");
+      toast.error("Failed to delete batch",{
+                    icon: <ToastLogo />,
+                style: {
+                  color: "#16a34a",
+                },
+                autoClose: 2000,
+              });
     } finally {
       setSubmitting(false);
     }

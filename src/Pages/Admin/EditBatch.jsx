@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { ApiService } from "../../Services/ApiService";
 import Modal from "../../components/Modal";
 import ConstantService from "../../Services/ConstantService";
+import { toast } from "react-toastify";
+import ToastLogo from "../../components/ToastLogo";
 
 const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -67,10 +69,28 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
     if (!validateForm()) return;
 
     setSubmitting(true);
-    await ApiService.put(`/api/batch/updateBatch/${batch?.id}`, formData);
+    try{
+   const res = await ApiService.put(`/api/batch/updateBatch/${batch?.id}`, formData);
+     toast.success("Trainee Updated Successfully!", {
+          icon: <ToastLogo />,
+          style: {
+            color: "#16a34a",
+          },
+          autoClose: 2000,
+        });
+      }catch(err){
+          toast.error("Something Went Wrong!", {
+               icon: <ToastLogo />,
+               style: {
+                 color: "#dc2626",
+               },
+               autoClose: 3000,
+             });
+            }finally{
     setSubmitting(false);
     onSuccess();
     onClose();
+            }
   };
 
 

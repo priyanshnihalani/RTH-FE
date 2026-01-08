@@ -24,6 +24,8 @@ import Modal from "../../components/Modal";
 import ConstantService from "../../Services/ConstantService";
 import dayjs from "dayjs";
 import calculateEndDate from "../../Services/CalculateEndDate";
+import ToastLogo from "../../components/ToastLogo";
+import { toast } from "react-toastify";
 
 const Trainee = () => {
   const navigate = useNavigate();
@@ -87,7 +89,6 @@ const Trainee = () => {
         wantToBoard: t.registration?.wantToBoard,
       }));
 
-    console.log(normalized)
     setTrainees(normalized);
     setLoading(false);
   };
@@ -129,17 +130,46 @@ const Trainee = () => {
     setDraft((prev) => ({ ...prev, [field]: value }));
 
   const saveTrainee = async (userId) => {
-    setLoading(true);
-    await ApiService.put(`/api/trainees/update/${userId}`, draft);
-    await fetchTrainees();
+  setLoading(true);
+  try {
+    const res = await ApiService.put(
+      `/api/trainees/update/${userId}`,
+      draft
+    );
+    toast.success("Trainee Updated Successfully!", {
+      icon: <ToastLogo />,
+      style: {
+        color: "#16a34a",
+      },
+      autoClose: 2000,
+    });
+  } catch (err) {
+    toast.error("Something Went Wrong!", {
+      icon: <ToastLogo />,
+      style: {
+        color: "#dc2626",
+      },
+      autoClose: 3000,
+    });
+  } finally {
+     await fetchTrainees();
     setEditingId(null);
     setDraft({});
     setLoading(false);
-  };
+  }
+};
+
 
   /* ---------- DELETE ---------- */
   const deleteTrainee = async (userId) => {
     await ApiService.delete(`/api/trainees/remove/${userId}`);
+    toast.error("Data Delete Successfully!", {
+      icon: <ToastLogo />,
+      style: {
+        color: "#dc2626",
+      },
+      autoClose: 3000,
+    });
     fetchTrainees();
   };
 
@@ -226,11 +256,25 @@ const Trainee = () => {
       document.body.removeChild(link);
 
       URL.revokeObjectURL(pdfUrl);
-
-      setOpenGenerateModal(false);
+       
+     toast.success("Offer letter generation Successfully!", {
+      icon: <ToastLogo />,
+      style: {
+        color: "#16a34a",
+      },
+      autoClose: 2000,
+    });
+       setOpenGenerateModal(false);
       setErrors({});
-    } catch (error) {
-      console.error("Offer letter generation failed", error);
+    } 
+      catch (error) {
+    toast.error("Offer letter generation failed", {
+      icon: <ToastLogo />,
+      style: {
+        color: "#dc2626",
+      },
+      autoClose: 3000,
+    });
     } finally {
       setLoading(false);
     }
@@ -272,8 +316,7 @@ const Trainee = () => {
 
   const handleGeneratecertificate = async () => {
     if (!validatecertificateForm()) return;
-    const { joinedDate, endDate, batch, manager, duration, name } = certificate
-    console.log({ joinedDate, endDate, batch, manager, duration, name })
+    const { joinedDate, endDate, batch, manager, duration, name } = certificate;
     try {
       setLoading(true);
 
@@ -299,12 +342,24 @@ const Trainee = () => {
       document.body.removeChild(link);
 
       URL.revokeObjectURL(pdfUrl);
-
+       toast.success("Certificate generation Successfully!", {
+      icon: <ToastLogo />,
+      style: {
+        color: "#16a34a",
+      },
+      autoClose: 2000,
+    });
       setOpenGenerateModal(false);
       setErrors({});
     } catch (error) {
-      console.error("Certificate generation failed", error);
-    } finally {
+    toast.error("Certificate generation failed", {
+      icon: <ToastLogo />,
+      style: {
+        color: "#dc2626",
+      },
+      autoClose: 3000,
+    });
+   } finally {
       setLoading(false);
     }
   };
