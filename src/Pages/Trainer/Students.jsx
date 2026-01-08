@@ -10,6 +10,20 @@ const Students = () => {
     const params = useParams()
     const [students, setStudents] = useState([]);
     const { trainerId } = useOutletContext()
+    const countTaskStatus = (assignedTasks = []) => {
+        return assignedTasks.reduce(
+            (acc, task) => {
+                acc[task.status] = (acc[task.status] || 0) + 1;
+                return acc;
+            },
+            {
+                ASSIGNED: 0,
+                IN_PROGRESS: 0,
+                COMPLETED: 0,
+            }
+        );
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -20,7 +34,19 @@ const Students = () => {
                 if (res == null) {
                     setStudents([])
                 }
-                setStudents(res?.Trainees.map((item) => ({ ...item, batch: res.name, batchId: res?.id })))
+                setStudents(
+                    res?.Trainees.map((item) => {
+                        const statusCount = countTaskStatus(item.MyTasks);
+
+                        return {
+                            ...item,
+                            batch: res.name,
+                            batchId: res.id,
+                            taskStats: statusCount, 
+                        };
+                    })
+                );
+
             } catch (err) {
                 console.log(err)
             }
@@ -50,10 +76,6 @@ const Students = () => {
 
                 {students?.map((student) => (
                     <StudentCard key={student.user_id} student={{ ...student, trainerId }} />
-                ))}
-
-                {Array.from({ length: skeletonCount }).map((_, i) => (
-                    <StudentCardSkeleton key={`skeleton-${i}`} />
                 ))}
 
             </div>

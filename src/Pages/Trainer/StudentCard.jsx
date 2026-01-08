@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const StudentCard = ({ student }) => {
     const navigate = useNavigate()
-
-    const { name, MyTasks, batch, batchId, user_id, trainerId } = student;
+    const { name, MyTasks, batch, batchId, user_id, trainerId, taskStats } = student;
     const handleViewAll = () => {
         navigate(`/trainer/tasks/${trainerId}/${batchId}/${user_id}`)
     }
@@ -20,9 +19,9 @@ const StudentCard = ({ student }) => {
             </p>
 
             <div className="flex justify-between items-center text-lg mb-4">
-                <Status label="Assigned" value={MyTasks.reduce((acc, cur) => cur.status == "assigned" ? acc + cur : 0, 0)} color="bg-blue-100 text-blue-600" />
-                <Status label="Pending" value={MyTasks.reduce((acc, cur) => cur.status == "pending" ? acc + cur : 0, 0)} color="bg-orange-100 text-orange-600" />
-                <Status label="Completed" value={MyTasks.reduce((acc, cur) => cur.status == "completed" ? acc + cur : 0, 0)} color="bg-green-100 text-green-600" />
+                <Status label="Assigned" value={taskStats.ASSIGNED} color="bg-blue-100 text-blue-600" />
+                <Status label="Pending" value={taskStats.IN_PROGRESS} color="bg-orange-100 text-orange-600" />
+                <Status label="Completed" value={taskStats.COMPLETED} color="bg-green-100 text-green-600" />
             </div>
 
             <button className="flex items-center cursor-pointer gap-2 text-orange-500 font-medium hover:translate-x-1 transition text-sm" onClick={handleViewAll}>

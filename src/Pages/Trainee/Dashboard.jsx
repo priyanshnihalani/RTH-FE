@@ -8,12 +8,14 @@ const TraineeDashboard = () => {
     const [tasks, setTasks] = useState([]);
     const navigate = useNavigate()
     const [user,setUser]=useState()
+    const [userDetails, setUserDetails] = useState(null)    
     const loadMe = async () => {
         const accessToken = Cookie.get("accessToken")
         const result = await ApiService.post("api/users/auth/me", { accessToken })
         setUser(result)
         if (result?.id) {
             const response = await ApiService.post("api/trainees/getTraineeById", { id: result?.id })
+            setUserDetails(response)
             if (response?.data?.registration?.wantToBoard) {
                 navigate("/pre-board", { replace: true })
             }
@@ -26,7 +28,6 @@ const TraineeDashboard = () => {
             traineeId:user.id,
           });
           setTasks(res);
-          console.log("res",res)
         } catch (err) {
           console.error(err);
         }
@@ -80,7 +81,7 @@ const TraineeDashboard = () => {
                 </div>
 
                 <h1 className="font-semibold text-gray-700">
-                    Batch: <span className="font-bold">MERN Batch-2025</span>
+                    Batch: <span className="font-bold">{userDetails?.data?.TraineeBatches[0]?.name}</span>
                 </h1>
             </div>
 

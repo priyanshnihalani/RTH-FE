@@ -36,8 +36,7 @@ const AddTrainerModal = ({ open, onClose, onSuccess }) => {
         if (!validateForm()) return;
         try {
             setSubmitting(true)
-            const result = await ApiService.post("/api/users/createtrainer", formData);
-            console.log(result)
+            await ApiService.post("/api/users/createtrainer", formData);
             onSuccess()
         }
         catch (err) {

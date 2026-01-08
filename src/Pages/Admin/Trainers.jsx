@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Pencil, Search, CalendarDays } from "lucide-react";
+import { Plus, Pencil, Search, CalendarDays, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -15,6 +15,8 @@ import {
 import AddTrainerModal from "./AddTrainerModal";
 import { ApiService } from "../../Services/ApiService";
 import BlockingLoader from "../../components/BlockingLoader";
+import { toast } from "react-toastify";
+import ToastLogo from "../../components/ToastLogo";
 
 /* ===================== MAIN COMPONENT ===================== */
 const Trainers = () => {
@@ -114,6 +116,27 @@ const Trainers = () => {
     fetchAllTrainers();
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await ApiService.delete(`/api/trainer/remove/${id}`)
+      toast.success("Trainer Deleted Successfully!", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#16a34a",
+        },
+        autoClose: 2000,
+      });
+    }
+    catch (err) {
+      toast.error("Something Went Wrong!", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#dc2626",
+        },
+        autoClose: 3000,
+      });
+    }
+  }
   /* ===================== UI ===================== */
   return (
     <>
@@ -127,7 +150,7 @@ const Trainers = () => {
   "
       >
         {/* ADD TRAINER MODAL */}
-        <AddTrainerModal open={openAdd} onClose={() => setOpenAdd(false)} />
+        <AddTrainerModal open={openAdd} onClose={() => setOpenAdd(false)} onSuccess={fetchAllTrainers} />
 
         {/* ================= HEADER ================= */}
         <div
@@ -240,7 +263,7 @@ const Trainers = () => {
 
               <TableBody>
                 {filteredTrainers.map((trainer) => (
-                  <TableRow key={trainer.id} hover sx={{background: "white"}}>
+                  <TableRow key={trainer.id} hover sx={{ background: "white" }}>
                     <TableCell>{trainer.name}</TableCell>
                     <TableCell>{trainer.email}</TableCell>
 
@@ -272,12 +295,21 @@ const Trainers = () => {
                     </TableCell>
 
                     <TableCell align="center">
-                      <IconButton
-                        onClick={() => openAssignModal(trainer)}
-                        sx={{ color: "#FB8924" }}
-                      >
-                        <Pencil size={18} />
-                      </IconButton>
+                      <div>
+
+                        <IconButton
+                          onClick={() => openAssignModal(trainer)}
+                          sx={{ color: "#FB8924" }}
+                        >
+                          <Pencil size={18} />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => handleDelete(trainer.id)}
+                          sx={{ color: "#FB8924" }}
+                        >
+                          <Trash2 size={18} />
+                        </IconButton>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -1,3 +1,5 @@
+import formatToMonthYear from "../Services/FormatToMonthYear";
+
 const TaskCard = ({ task }) => {
 
   const statusStyles = {
@@ -18,6 +20,7 @@ const TaskCard = ({ task }) => {
         bg-white
         rounded-2xl
         p-5
+        pb-3
         cursor-grab
         shadow-[0_5px_10px_rgba(0,0,0,0.1)]
         hover:shadow-[0_20px_40px_rgba(0,0,0,0.15)]
@@ -46,6 +49,10 @@ const TaskCard = ({ task }) => {
       <div className="flex justify-between text-xs text-gray-400 mt-3">
         <span>{task.trainerName}</span>
         <span>{task.dueDate}</span>
+      </div>
+
+      <div className="flex text-xs font-medium text-gray-500 border-t border-dashed items-baseline pt-2 justify-end">
+        {formatToMonthYear(task.createdAt)}
       </div>
     </div>
   );
