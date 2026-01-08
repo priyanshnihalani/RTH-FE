@@ -16,10 +16,8 @@ const Dashboard = () => {
         const res = await ApiService.post("/api/trainer/getTrainersBatches", { trainerId })
         setBatches(res)
         const statusCount = res.reduce((acc, batch) => {
-            batch.Trainers.forEach((trainer) => {
-                trainer.AssignedTasks.forEach((task) => {
-                    acc[task.status] = (acc[task.status] || 0) + 1;
-                });
+            batch.Tasks.forEach((tasks) => {
+                    acc[tasks.status] = (acc[tasks.status] || 0) + 1;
             });
 
             return acc;
@@ -47,8 +45,8 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard label="Batches" value={batches.length} type="batches" />
                     <StatCard label="Students" value={batches.reduce((acc, cur) => acc + cur?.Trainees?.length, 0)} type="students" />
-                    <StatCard label="Pending Tasks" value={statusCount?.IN_PROGRESS} type="pending" />
-                    <StatCard label="Completed Tasks" value={statusCount?.COMPLETED} type="completed" />
+                    <StatCard label="Pending Tasks" value={statusCount?.IN_PROGRESS || 0} type="pending" />
+                    <StatCard label="Completed Tasks" value={statusCount?.COMPLETED || 0} type="completed" />
                 </div>
                 <div className="space-y-4 bg-white p-6 rounded-4xl shadow-[0_10px_10px_rgba(0,0,0,0.08)]">
                     <h2 className="text-lg font-semibold text-gray-800">
@@ -56,7 +54,7 @@ const Dashboard = () => {
                     </h2>
 
                     <div>
-                        <div className="grid xl:grid-cols-2 gap-2">
+                        {batches.length > 0 ? <div className="grid xl:grid-cols-2 gap-2">
                             {batches.map(batch => (
                                 <BatchCard
                                     key={batch?.id}
@@ -67,6 +65,11 @@ const Dashboard = () => {
                                 />
                             ))}
                         </div>
+                            :
+                            <div className="flex items-center text-gray-500 justify-center text-2xl min-h-[50vh]">
+                                No Batches Are Assigned To You.
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

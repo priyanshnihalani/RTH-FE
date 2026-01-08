@@ -72,16 +72,12 @@ const Students = () => {
             {/* STUDENT GRID */}
             {students?.length > 0 ?
                 < div ref={gridRef} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 ">
-
                     {students?.map((student) => (
                         <StudentCard key={student.user_id} student={{ ...student, trainerId }} />
                     ))}
 
-
-
                 </div>
                 :
-
                 <div className="flex min-h-[50vh] text-2xl items-center justify-center w-full">
                     <h1>No Data Available</h1>
                 </div>
