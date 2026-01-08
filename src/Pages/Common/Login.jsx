@@ -4,6 +4,8 @@ import { Link, replace, useNavigate } from 'react-router-dom'
 import { ApiService } from "../../Services/ApiService";
 import BlockingLoader from "../../components/BlockingLoader";
 import Cookies from "js-cookie";
+import { toast } from "react-toastify";
+import ToastLogo from "../../components/ToastLogo";
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -75,15 +77,23 @@ const Login = () => {
                 navigate("/waiting", { replace: true });
                 return;
             }
-
+              toast.success(res.message || "Login Successfully!", {
+                      icon: <ToastLogo />,
+                      style: {
+                        color: "#16a34a",
+                      },
+                      autoClose: 2000,
+                    });
             navigate("/", { replace: true })
 
         } catch (err) {
-            setErrors({
-                password:
-                    err?.response?.data?.message ||
-                    "Invalid email or password",
-            });
+              toast.error(err?.response?.data?.message || err.message || "Login failed!", {
+                icon: <ToastLogo />,
+                style: {
+                  color: "#dc2626",
+                },
+                autoClose: 3000,
+              });
         } finally {
             setLoading(false);
         }

@@ -1,6 +1,8 @@
 import Modal from "../../components/Modal"
 import { useState } from "react";
 import { ApiService } from "../../Services/ApiService";
+import { toast } from "react-toastify";
+import ToastLogo from "../../components/ToastLogo";
 
 const AddTrainerModal = ({ open, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
@@ -37,12 +39,23 @@ const AddTrainerModal = ({ open, onClose, onSuccess }) => {
         try {
             setSubmitting(true)
             const result = await ApiService.post("/api/users/createtrainer", formData);
-            console.log(result)
-            onSuccess()
+             toast.success("Trainer create Successfully!", {
+                  icon: <ToastLogo />,
+                  style: {
+                    color: "#16a34a",
+                  },
+                  autoClose: 2000,
+                });
         }
-        catch (err) {
-            console.log(err)
-        }
+             catch (error) {
+             toast.error(error?.response?.data?.message || error.message || "Trainer failed!", {
+               icon: <ToastLogo />,
+               style: {
+                 color: "#dc2626",
+               },
+               autoClose: 3000,
+             });
+            }
         finally {
             setSubmitting(false)
         }
@@ -65,7 +78,7 @@ const AddTrainerModal = ({ open, onClose, onSuccess }) => {
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            placeholder="laalo"
+                            placeholder="Enter Name"
                             className={`w-full rounded-lg border px-3 py-3 text-sm
           ${errors.name ? "border-red-400 animate-shake" : "border-slate-300"}
           bg-white text-slate-800

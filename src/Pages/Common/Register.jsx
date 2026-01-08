@@ -4,6 +4,8 @@ import { ApiService } from "../../Services/ApiService";
 import { replace, useNavigate } from "react-router-dom";
 import BlockingLoader from "../../components/BlockingLoader";
 import Cookies from 'js-cookie'
+import { toast } from "react-toastify";
+import ToastLogo from "../../components/ToastLogo";
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -68,14 +70,25 @@ export default function Register() {
                 expires: 365,
                 sameSite: "lax",
             });
-
+             toast.success(res.message || "Register Successfully!", {
+                      icon: <ToastLogo />,
+                      style: {
+                        color: "#16a34a",
+                      },
+                      autoClose: 2000,
+                    });
             navigate("/waiting", { replace: true });
-
-        } catch (error) {
-            console.log(
-                error?.response?.data?.message || "Registration failed"
-            );
-        } finally {
+             
+        }  
+        catch (err) {
+              toast.error(err?.response?.data?.message || err.message || "Registration failed!", {
+                icon: <ToastLogo />,
+                style: {
+                  color: "#dc2626",
+                },
+                autoClose: 3000,
+              });
+            }finally {
             setLoading(false);
         }
     };
