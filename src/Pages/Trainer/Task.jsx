@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import TaskColumn from "../../components/TaskColumn";
 import { Button, Modal, Box } from "@mui/material";
-import { Plus } from "lucide-react";
+import { Plus, PlusCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { ApiService } from "../../Services/ApiService";
 import ToastLogo from "../../components/ToastLogo";
@@ -94,7 +94,6 @@ const Task = () => {
       });
 
       setTasks(res);
-      console.log("res", res);
     } catch (err) {
       console.error(err);
     }
@@ -117,7 +116,7 @@ const Task = () => {
       flex justify-between items-center
     "
       >
-          
+
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Trainer Tasks</h1>
           <p className="text-gray-500">
@@ -125,17 +124,19 @@ const Task = () => {
           </p>
         </div>
 
-        <h1 className="font-semibold text-gray-700">
-          Batch: <span className="font-bold">MERN Batch-2025</span>
-        </h1>
+        <div className="flex items-center space-x-8 relative">
+          <h1 className="font-semibold text-gray-700">
+            Batch: <span className="font-bold">{tasks[0]?.Batch?.name}</span>
+          </h1>
           <button
-          onClick={() => setOpenGenerateModal(true)}
-          className="absolute top-39 right-65 flex px-4 py-2 font-medium cursor-pointer hover:bg-primary-dark text-sm space-x-1 items-center bg-primary text-white rounded-xl"
-          
-        >
-          <Plus size={18} />
-          Create Task
-        </button>
+            onClick={() => setOpenGenerateModal(true)}
+            className=" flex px-4  py-3 space-x-2 font-medium cursor-pointer hover:bg-primary-dark text-sm  items-center bg-primary text-white rounded-xl"
+
+          >
+            <PlusCircle size={18} />
+            <span>Create Task</span>
+          </button>
+        </div>
       </div>
 
       {/* KANBAN */}

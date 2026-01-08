@@ -38,7 +38,7 @@ const AddTrainerModal = ({ open, onClose, onSuccess }) => {
         if (!validateForm()) return;
         try {
             setSubmitting(true)
-            const result = await ApiService.post("/api/users/createtrainer", formData);
+            await ApiService.post("/api/users/createtrainer", formData);
              toast.success("Trainer create Successfully!", {
                   icon: <ToastLogo />,
                   style: {
@@ -46,6 +46,7 @@ const AddTrainerModal = ({ open, onClose, onSuccess }) => {
                   },
                   autoClose: 2000,
                 });
+                onSuccess();
         }
              catch (error) {
              toast.error(error?.response?.data?.message || error.message || "Trainer failed!", {

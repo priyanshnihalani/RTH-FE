@@ -6,14 +6,26 @@ import { ApiService } from "../../Services/ApiService";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
 const Dashboard = () => {
-    const [batches, setBatches] = useState([]) 
+    const [batches, setBatches] = useState([])
     const { trainerId } = useOutletContext()
     const navigate = useNavigate();
+    const [statusCount, setStatusCount] = useState(null)
 
     const loadData = async () => {
-        if(!trainerId) return
+        if (!trainerId) return
         const res = await ApiService.post("/api/trainer/getTrainersBatches", { trainerId })
         setBatches(res)
+        const statusCount = res.reduce((acc, batch) => {
+            batch.Trainers.forEach((trainer) => {
+                trainer.AssignedTasks.forEach((task) => {
+                    acc[task.status] = (acc[task.status] || 0) + 1;
+                });
+            });
+
+            return acc;
+        }, {});
+
+        setStatusCount(statusCount)
     }
 
     useEffect(() => {
@@ -35,8 +47,8 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard label="Batches" value={batches.length} type="batches" />
                     <StatCard label="Students" value={batches.reduce((acc, cur) => acc + cur?.Trainees?.length, 0)} type="students" />
-                    <StatCard label="Pending Tasks" value="12" type="pending" />
-                    <StatCard label="Completed Tasks" value="34" type="completed" />
+                    <StatCard label="Pending Tasks" value={statusCount?.IN_PROGRESS} type="pending" />
+                    <StatCard label="Completed Tasks" value={statusCount?.COMPLETED} type="completed" />
                 </div>
                 <div className="space-y-4 bg-white p-6 rounded-4xl shadow-[0_10px_10px_rgba(0,0,0,0.08)]">
                     <h2 className="text-lg font-semibold text-gray-800">
@@ -54,11 +66,6 @@ const Dashboard = () => {
                                     onClick={() => navigate(`/trainer/batches/${batch.id}/${Date.now()}`)}
                                 />
                             ))}
-                            {batches.length < 8 &&
-                                Array.from({ length: 8 - batches.length }).map((_, index) => (
-                                    <BatchSkeleton key={`skeleton-${index}`} />
-                                ))
-                            }
                         </div>
                     </div>
                 </div>
