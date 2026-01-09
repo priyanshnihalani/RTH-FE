@@ -18,7 +18,6 @@ const Task = () => {
     title: "",
     description: "",
   });
-  console.log("params", parms);
   const handleChange = (e) => {
     setformData({ ...formData, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
@@ -49,9 +48,7 @@ const Task = () => {
       const res = await ApiService.post("/api/task/assign", payload);
 
       const newTask = res;
-
       setTasks((prev) => [...prev, newTask]);
-      console.log("task", tasks);
       toast.success("Task Created Successfully!");
       setOpenGenerateModal(false);
 
@@ -69,7 +66,6 @@ const Task = () => {
 
   const group = (status) => tasks.filter((t) => t.status === status);
 
-  const STATUS_FLOW = ["ASSIGNED", "IN_PROGRESS", "COMPLETED"];
 
   const handleTaskAction = async (task, newStatus) => {
     try {

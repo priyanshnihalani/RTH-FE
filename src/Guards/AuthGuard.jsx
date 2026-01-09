@@ -2,6 +2,7 @@
   import { Navigate } from "react-router-dom";
   import { ApiService } from "../Services/ApiService";
   import Cookies from "js-cookie";
+import BlockingLoader from "../components/BlockingLoader";
 
   const AuthGuard = ({ children, requireAuth = true }) => {
     const [loading, setLoading] = useState(true);
@@ -58,7 +59,7 @@
     if (loading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
-          Checking authentication...
+          <BlockingLoader/>
         </div>
       );
     }

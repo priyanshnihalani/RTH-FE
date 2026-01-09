@@ -109,7 +109,9 @@ const Trainee = () => {
     setDraft({
       name: t.name || "",
       education: t.education || "",
+      email: t.email || "",
       college: t.college || "",
+      phone: t.phone || "",
       batches: t.batches?.map(b => b.id) || [],
       remainingFee: t.remainingFee ?? 0,
       admissionStatus: t.admissionStatus || "pending",
@@ -130,34 +132,34 @@ const Trainee = () => {
     setDraft((prev) => ({ ...prev, [field]: value }));
 
   const saveTrainee = async (userId) => {
-  setLoading(true);
-  try {
-    const res = await ApiService.put(
-      `/api/trainees/update/${userId}`,
-      draft
-    );
-    toast.success("Trainee Updated Successfully!", {
-      icon: <ToastLogo />,
-      style: {
-        color: "#16a34a",
-      },
-      autoClose: 2000,
-    });
-  } catch (err) {
-    toast.error("Something Went Wrong!", {
-      icon: <ToastLogo />,
-      style: {
-        color: "#dc2626",
-      },
-      autoClose: 3000,
-    });
-  } finally {
-     await fetchTrainees();
-    setEditingId(null);
-    setDraft({});
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      const res = await ApiService.put(
+        `/api/trainees/update/${userId}`,
+        draft
+      );
+      toast.success("Trainee Updated Successfully!", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#16a34a",
+        },
+        autoClose: 2000,
+      });
+    } catch (err) {
+      toast.error("Something Went Wrong!", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#dc2626",
+        },
+        autoClose: 3000,
+      });
+    } finally {
+      await fetchTrainees();
+      setEditingId(null);
+      setDraft({});
+      setLoading(false);
+    }
+  };
 
 
   /* ---------- DELETE ---------- */
@@ -256,25 +258,25 @@ const Trainee = () => {
       document.body.removeChild(link);
 
       URL.revokeObjectURL(pdfUrl);
-       
-     toast.success("Offer letter generation Successfully!", {
-      icon: <ToastLogo />,
-      style: {
-        color: "#16a34a",
-      },
-      autoClose: 2000,
-    });
-       setOpenGenerateModal(false);
+
+      toast.success("Offer letter generation Successfully!", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#16a34a",
+        },
+        autoClose: 2000,
+      });
+      setOpenGenerateModal(false);
       setErrors({});
-    } 
-      catch (error) {
-    toast.error("Offer letter generation failed", {
-      icon: <ToastLogo />,
-      style: {
-        color: "#dc2626",
-      },
-      autoClose: 3000,
-    });
+    }
+    catch (error) {
+      toast.error("Offer letter generation failed", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#dc2626",
+        },
+        autoClose: 3000,
+      });
     } finally {
       setLoading(false);
     }
@@ -342,32 +344,34 @@ const Trainee = () => {
       document.body.removeChild(link);
 
       URL.revokeObjectURL(pdfUrl);
-       toast.success("Certificate generation Successfully!", {
-      icon: <ToastLogo />,
-      style: {
-        color: "#16a34a",
-      },
-      autoClose: 2000,
-    });
+      toast.success("Certificate generation Successfully!", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#16a34a",
+        },
+        autoClose: 2000,
+      });
       setOpenGenerateModal(false);
       setErrors({});
     } catch (error) {
-    toast.error("Certificate generation failed", {
-      icon: <ToastLogo />,
-      style: {
-        color: "#dc2626",
-      },
-      autoClose: 3000,
-    });
-   } finally {
+      toast.error("Certificate generation failed", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#dc2626",
+        },
+        autoClose: 3000,
+      });
+    } finally {
       setLoading(false);
     }
   };
 
   const tableColumns = [
     { label: "Name", width: 180 },
+    { label: "Email", width: 180 },
     { label: "Degree", width: 120 },
     { label: "College", width: 200 },
+    { label: "Phone", width: 200 },
     { label: "Batch", width: 200 },
     { label: "Remaining Fees", width: 160 },
     { label: "Admission", width: 130 },
@@ -446,6 +450,20 @@ const Trainee = () => {
                         {isEdit ? (
                           <TextField
                             size="small"
+                            value={draft.email}
+                            onChange={(e) =>
+                              updateDraft("email", e.target.value)
+                            }
+                          />
+                        ) : (
+                          t.email
+                        )}
+                      </TableCell>
+
+                      <TableCell>
+                        {isEdit ? (
+                          <TextField
+                            size="small"
                             value={draft.education}
                             onChange={(e) =>
                               updateDraft("education", e.target.value)
@@ -472,12 +490,34 @@ const Trainee = () => {
 
                       <TableCell>
                         {isEdit ? (
+                          <TextField
+                            size="small"
+                            value={draft.phone}
+                            onChange={(e) =>
+                              updateDraft("phone", e.target.value)
+                            }
+                          />
+                        ) : (
+                          t.phone || "-"
+                        )}
+                      </TableCell>
+
+                      <TableCell>
+                        {isEdit ? (
                           <Select
                             size="small"
-                            value={draft.batches?.[0]}
+                            value={draft.batches?.[0] ?? ""}
+                            displayEmpty
                             onChange={(e) =>
-                              updateDraft("batches", [e.target.value])
+                              updateDraft("batches", e.target.value ? [e.target.value] : [])
                             }
+                            renderValue={(selected) => {
+                              if (!selected) return "Select Batch";
+
+                              return (
+                                batches.find((b) => b.id === selected)?.name || "-"
+                              );
+                            }}
                           >
                             {batches.map((b) => (
                               <MenuItem key={b.id} value={b.id}>
@@ -553,10 +593,20 @@ const Trainee = () => {
                         {isEdit ? (
                           <Select
                             size="small"
-                            value={draft.duration}
+                            value={draft.duration ?? ""}
+                            displayEmpty
                             onChange={(e) =>
                               updateDraft("duration", e.target.value)
                             }
+                            renderValue={(selected) => {
+                              if (!selected) return "Select Duration";
+
+                              return (
+                                ConstantService.Duration.find(
+                                  (d) => d.value === selected
+                                )?.label || "-"
+                              );
+                            }}
                           >
                             {ConstantService.Duration.map((d) => (
                               <MenuItem key={d.value} value={d.value}>
@@ -566,7 +616,7 @@ const Trainee = () => {
                           </Select>
                         ) : (
                           ConstantService.Duration.find(
-                            (s) => s.value === t.duration
+                            (d) => d.value === t.duration
                           )?.label || "-"
                         )}
                       </TableCell>
@@ -597,7 +647,7 @@ const Trainee = () => {
                         {isEdit ? (
                           <Select
                             size="small"
-                            value={draft.shift}
+                            value={draft.shift ?? "Select Shift"}
                             onChange={(e) =>
                               updateDraft("shift", e.target.value)
                             }
@@ -666,10 +716,20 @@ const Trainee = () => {
                         {isEdit ? (
                           <Select
                             size="small"
-                            value={draft.technology}
+                            value={draft.technology ?? ""}
+                            displayEmpty
                             onChange={(e) =>
                               updateDraft("technology", e.target.value)
                             }
+                            renderValue={(selected) => {
+                              if (!selected) return "Select Technology";
+
+                              return (
+                                ConstantService.Technologys.find(
+                                  (s) => s.value === selected
+                                )?.label || "-"
+                              );
+                            }}
                           >
                             {ConstantService.Technologys.map((s) => (
                               <MenuItem key={s.value} value={s.value}>
@@ -683,6 +743,7 @@ const Trainee = () => {
                           )?.label || "-"
                         )}
                       </TableCell>
+
                       <TableCell>
                         {isEdit ? (
                           <Select
