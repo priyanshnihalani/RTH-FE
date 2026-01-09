@@ -7,10 +7,12 @@ import { ApiService } from "../../Services/ApiService";
 import ToastLogo from "../../components/ToastLogo";
 import { useParams } from "react-router-dom";
 import TaskCard from "../../components/TaskCard";
+import BlockingLoader from "../../components/BlockingLoader";
 
 const Task = () => {
   const [tasks, setTasks] = useState([]);
   const [errors, setErrors] = useState({});
+  const[isLoding,setIsLoding]=useState(false)
   const [batchId, setBatchId] = useState("mern-jan-2025");
   const [openGenerateModal, setOpenGenerateModal] = useState(false);
   const parms = useParams();
@@ -49,7 +51,13 @@ const Task = () => {
 
       const newTask = res;
       setTasks((prev) => [...prev, newTask]);
-      toast.success("Task Created Successfully!");
+      toast.success("Task Created Successfully!",{
+        icon: <ToastLogo />,
+                 style: {
+                   color: "#059669",
+                 },
+                 autoClose: 3000,
+               });
       setOpenGenerateModal(false);
 
       setformData({
@@ -59,8 +67,13 @@ const Task = () => {
 
       setErrors({});
     } catch (err) {
-      console.error(err?.response?.data || err);
-      toast.error(err?.response?.data?.message || "Something went wrong!");
+       toast.error(err?.response?.data?.message || "Something went wrong!",{
+      icon: <ToastLogo />,
+               style: {
+                 color: "#dc2626",
+               },
+               autoClose: 3000,
+             });
     }
   };
 
@@ -69,29 +82,41 @@ const Task = () => {
 
   const handleTaskAction = async (task, newStatus) => {
     try {
+      setIsLoding(true)
       await ApiService.put(`/api/task/update/status`, {
         traineeId: task.traineeId,
         taskId: task.id,
         newStatus: newStatus,
       });
-
       setTasks((prev) =>
         prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t))
       );
     } catch (err) {
-      toast.error("Status update failed");
+      toast.error("Status update failed",{
+      icon: <ToastLogo />,
+               style: {
+                 color: "#dc2626",
+               },
+               autoClose: 3000,
+             });
+    }
+    finally{
+      setIsLoding(false)
     }
   };
 
   const loadTasks = async () => {
     try {
+      setIsLoding(true)
       const res = await ApiService.post("/api/task/traineetask", {
         ...parms,
       });
-
       setTasks(res);
     } catch (err) {
       console.error(err);
+    }
+    finally{
+      setIsLoding(false)
     }
   };
   useEffect(() => {
@@ -99,6 +124,8 @@ const Task = () => {
   }, [batchId]);
 
   return (
+    <>
+     {isLoding && <BlockingLoader />}
     <div
       className="
   "
@@ -301,6 +328,7 @@ const Task = () => {
         </Box>
       </Modal>
     </div>
+    </>
   );
 };
 

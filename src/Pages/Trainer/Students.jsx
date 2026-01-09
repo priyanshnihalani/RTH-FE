@@ -5,10 +5,12 @@ import StudentCard from "./StudentCard";
 import StudentCardSkeleton from "./StudentCardSkeleton";
 import useSkeletonCount from "./useSkeletonCount";
 import { toast } from "react-toastify";
+import BlockingLoader from "../../components/BlockingLoader";
 
 const Students = () => {
     const { gridRef, count } = useSkeletonCount()
     const params = useParams()
+    const [isLoding,setIsLoding]=useState(false)
     const [students, setStudents] = useState([]);
     const { trainerId } = useOutletContext()
     const [search, setSearch] = useState("")
@@ -28,6 +30,7 @@ const Students = () => {
 
     const fetchData = async () => {
         try {
+             setIsLoding(true)
             const res = await ApiService.post(
                 "api/trainees/pertraineetaskperbatch",
                 { batchId: params.id }
@@ -51,6 +54,9 @@ const Students = () => {
         } catch (err) {
             toast.error(err?.message || "Something went wrong!")
         }
+        finally{
+            setIsLoding(false)
+        }
     };
 
     useEffect(() => {
@@ -63,6 +69,8 @@ const Students = () => {
 
 
     return (
+        <>
+         {isLoding && <BlockingLoader />}
         <div className="min-h-screen bg-linear-to-br from-orange-50 via-white to-orange-100 p-6 space-y-6">
 
             {/* HEADER */}
@@ -106,6 +114,7 @@ const Students = () => {
             }
 
         </div >
+        </>
     );
 }
 
