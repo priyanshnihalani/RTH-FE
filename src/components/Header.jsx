@@ -8,7 +8,7 @@ const Header = (id) => {
   const handleLogout = async () => {
     await ApiService.get("/api/users/logout");
     Cookie.remove("accessToken");
-    navigate("/login");
+    navigate("/login", {replace: true});
   };
 
   return (

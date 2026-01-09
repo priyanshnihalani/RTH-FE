@@ -8,7 +8,7 @@ import {
     ArrowRight
 } from "lucide-react";
 import { ApiService } from "../../Services/ApiService";
-import { useNavigate } from "react-router-dom";
+import { replace, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import BlockingLoader from "../../components/BlockingLoader";
 import Cookies from "js-cookie"
@@ -25,7 +25,7 @@ export default function Dashboard() {
         const res = await ApiService.get("/api/users/logout");
         if (res.message == "Logged out successfully") {
             Cookies.remove('accessToken')
-            navigate("/");
+            navigate("/", { replace: true });
         }
     };
 
