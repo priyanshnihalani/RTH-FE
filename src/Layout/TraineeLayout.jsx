@@ -16,7 +16,6 @@ const TraineeLayout = () => {
             const res = await ApiService.post("/api/users/auth/me", {
                 accessToken: accesscookies
             });
-            console.log(res)
             setData(res)
         }
         catch (err) {
@@ -39,7 +38,7 @@ const TraineeLayout = () => {
             via-white
             to-orange-100">
                     <Header id={data?.id} />
-                    <Outlet />
+                    <Outlet context={{ id: data?.id }} />
                 </div>
             }
         </>

@@ -37,7 +37,7 @@ const DeleteBatchModal = ({ open, onClose, batch, onSuccess }) => {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="">
+    <Modal css={"w-1/3"} open={open} onClose={onClose} title="">
       <div className="flex flex-col items-center text-center p-6 space-y-4">
 
         <img

@@ -20,6 +20,7 @@ const Batches = () => {
         try {
             setLoading(true)
             const result = await ApiService.get("/api/batch/getallbatchwithdetail")
+            console.log(result)
             setBatches(result)
         }
         catch (err) {
@@ -47,6 +48,7 @@ const Batches = () => {
                 <AddBatchModal
                     open={openAdd}
                     onClose={() => setOpenAdd(false)}
+                    onSuccess={fetchBatches}
                 />
 
                 <EditBatchModal
@@ -56,7 +58,7 @@ const Batches = () => {
                     onSuccess={fetchBatches}
                 />
 
-                <DeleteBatchModal 
+                <DeleteBatchModal
                     open={openDelete}
                     batch={selected}
                     onClose={() => setOpenDelete(false)}
@@ -117,21 +119,14 @@ const Batches = () => {
                             </p>
                         </div>
                     ) : (
-                        batches.map((item) => (
-                            <BatchCard
-                                key={item.id}
-                                id={item.id}
-                                name={item.name}
-                                technology={item.technology}
-                                trainer={item.trainerName}
-                                traineeCount={item.traineeCount}
-                                startDate={item.startDate}
-                                endDate={item.endDate}
-                                setIsEditOpen={setOpenEdit}
-                                setSelected={setSelected}
-                                setIsDeleteOpen={setOpenDelete}
-                            />
-                        ))
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                            {batches.map((batch) => (
+                                <BatchCard key={batch.id} id={batch.id} trainer={batch.Trainers}
+                                    technology={batch.technology}
+                                    traineeCount={batch.traineeCount} setSelected={setSelected} setIsEditOpen={setOpenEdit} setIsDeleteOpen={setOpenDelete} />
+                            ))}
+                        </div>
+
                     )}
                 </div>
             </section >

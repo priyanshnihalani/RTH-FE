@@ -1,10 +1,9 @@
 import {
-  Calendar,
   Layers,
   PenIcon,
   Trash2,
   UserCheck,
-  Users
+  Users,
 } from "lucide-react";
 
 export default function BatchCard({
@@ -22,21 +21,27 @@ export default function BatchCard({
   return (
     <div
       className="
-        bg-white/70 backdrop-blur-xl
-        rounded-3xl p-5
-        border border-white/40
-        shadow-[0_12px_30px_rgba(0,0,0,0.08)]
-        hover:shadow-[0_12px_35px_rgba(0,0,0,0.12)]
-        transition
-        flex justify-between items-center
+        bg-white
+        rounded-2xl
+        border border-gray-200
+        shadow-sm
+        hover:shadow-lg
+        hover:-translate-y-1
+        transition-all duration-300
+        overflow-hidden
+        flex flex-col
       "
     >
-      {/* -------- LEFT INFO -------- */}
-      <div className="space-y-3">
-        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-          <span className="p-2 bg-orange-100 rounded-xl text-orange-500">
-            <Layers size={16} />
-          </span>
+      {/* ---------- IMAGE / ICON ---------- */}
+      <div className="h-32 bg-orange-50 flex items-center justify-center">
+        <div className="p-4 bg-orange-100 rounded-2xl text-orange-500">
+          <Layers size={28} />
+        </div>
+      </div>
+
+      {/* ---------- CONTENT ---------- */}
+      <div className="p-4 flex-1 space-y-2">
+        <h3 className="font-semibold text-gray-800 line-clamp-1">
           {name}
         </h3>
 
@@ -47,52 +52,40 @@ export default function BatchCard({
           </span>
         </p>
 
-        {/* Trainer + Trainees */}
-        <div className="flex items-center gap-6 text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <UserCheck size={14} className="text-orange-500" />
-            <span>{trainer || "Not Assigned"}</span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <Users size={14} />
-            <span>{traineeCount} Trainees</span>
-          </div>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <UserCheck size={14} className="text-orange-500" />
+          <span className="truncate">
+            {trainer?.map(item => item.name).join(', ') || "Not Assigned"}
+          </span>
         </div>
 
-        {/* Dates */}
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <Calendar size={14} />
-          {startDate || "No Fixed Start Date"} → {endDate || "No Fixed End Date"}
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Users size={14} />
+          <span>{traineeCount} Trainees</span>
         </div>
       </div>
 
-      {/* -------- ACTIONS -------- */}
-      <div className="flex space-x-4">
-
+      {/* ---------- ACTIONS ---------- */}
+      <div className="border-t px-4 py-3 flex justify-between">
         <button
           onClick={() => {
             setIsEditOpen(true);
             setSelected({
               id,
-              name,
               technology,
-              startDate,
-              endDate,
               trainer,
-              traineeCount
             });
           }}
           className="
-          flex items-center gap-1
-          text-sm font-medium
-          text-orange-500
-          hover:underline
-        "
+            flex items-center gap-1
+            text-sm font-medium text-orange-500
+            hover:underline
+          "
         >
           <PenIcon size={14} />
           Edit
         </button>
+
         <button
           onClick={() => {
             setIsDeleteOpen(true);
@@ -107,11 +100,10 @@ export default function BatchCard({
             });
           }}
           className="
-          flex items-center gap-1
-          text-sm font-medium
-          text-orange-500
-          hover:underline
-        "
+            flex items-center gap-1
+            text-sm font-medium text-red-500
+            hover:underline
+          "
         >
           <Trash2 size={14} />
           Delete

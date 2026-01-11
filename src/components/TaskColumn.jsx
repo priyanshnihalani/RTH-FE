@@ -1,6 +1,9 @@
+import { useState } from "react";
 import TaskCard from "./TaskCard";
+import TaskDetailCard from "./TaskDetailCard";
+const TaskColumn = ({ title, status, tasks, onAction, onEdit }) => {
+  const [activeTask, setActiveTask] = useState(null);
 
-const TaskColumn = ({ title, status, tasks, onAction }) => {
   const handleDrop = (e) => {
     e.preventDefault();
 
@@ -9,7 +12,7 @@ const TaskColumn = ({ title, status, tasks, onAction }) => {
     );
 
     if (droppedTask.status !== status) {
-      onAction(droppedTask, status); 
+      onAction(droppedTask, status);
     }
   };
 
@@ -45,9 +48,18 @@ const TaskColumn = ({ title, status, tasks, onAction }) => {
 
       {/* TASKS */}
       <div className="space-y-5">
-        {tasks.map(task => (
-          <TaskCard key={task.id} task={task} />
+        {tasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            onEdit={onEdit}
+            onOpen={setActiveTask}
+          />
         ))}
+        {
+          activeTask &&
+          <TaskDetailCard task={activeTask}  onClose={() => setActiveTask(null)}/>
+        }
       </div>
     </div>
   );

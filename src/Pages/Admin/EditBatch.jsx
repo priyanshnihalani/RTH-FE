@@ -7,10 +7,7 @@ import ToastLogo from "../../components/ToastLogo";
 
 const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
   const [formData, setFormData] = useState({
-    name: "",
     technology: "",
-    startDate: "",
-    endDate: ""
   });
 
   const [errors, setErrors] = useState({});
@@ -19,10 +16,7 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
   useEffect(() => {
     if (batch && open) {
       setFormData({
-        name: batch.name || "",
         technology: batch.technology || "",
-        startDate: batch.startDate || null,
-        endDate: batch.endDate || null
       });
       setErrors({});
     }
@@ -36,28 +30,8 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
   const validateForm = () => {
     const errors = {};
 
-    if (!formData.name || formData.name.trim().length < 3) {
-      errors.name = "Batch name must be at least 3 characters";
-    }
-
     if (!formData.technology) {
       errors.technology = "Please select a technology";
-    }
-
-    if (!formData.startDate && formData.endDate) {
-      errors.startDate = "Start date is required";
-    }
-
-    if (!formData.endDate && formData.startDate) {
-      errors.endDate = "End date is required";
-    }
-
-    if (
-      formData.startDate &&
-      formData.endDate &&
-      new Date(formData.endDate) < new Date(formData.startDate)
-    ) {
-      errors.endDate = "End date must be after start date";
     }
 
     setErrors(errors);
@@ -69,33 +43,33 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
     if (!validateForm()) return;
 
     setSubmitting(true);
-    try{
-   const res = await ApiService.put(`/api/batch/updateBatch/${batch?.id}`, formData);
-     toast.success("Trainee Updated Successfully!", {
-          icon: <ToastLogo />,
-          style: {
-            color: "#16a34a",
-          },
-          autoClose: 2000,
-        });
-      }catch(err){
-          toast.error("Something Went Wrong!", {
-               icon: <ToastLogo />,
-               style: {
-                 color: "#dc2626",
-               },
-               autoClose: 3000,
-             });
-            }finally{
-    setSubmitting(false);
-    onSuccess();
-    onClose();
-            }
+    try {
+      await ApiService.put(`/api/batch/updateBatch/${batch?.id}`, formData);
+      toast.success("Trainee Updated Successfully!", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#16a34a",
+        },
+        autoClose: 2000,
+      });
+    } catch (err) {
+      toast.error("Something Went Wrong!", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#dc2626",
+        },
+        autoClose: 3000,
+      });
+    } finally {
+      setSubmitting(false);
+      onSuccess();
+      onClose();
+    }
   };
 
 
   return (
-    <Modal open={open} onClose={onClose} title="Edit Batch">
+    <Modal css={'w-1/4'} open={open} onClose={onClose} title="Edit Batch">
       <form
         onSubmit={handleSubmit}
         className="space-y-6 animate-in fade-in zoom-in-95 duration-200"
@@ -110,11 +84,11 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
           {/* Batch Name */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-slate-600">
-              Batch Name
+              Technology
             </label>
             <input
-              name="name"
-              value={formData.name}
+              name="technology"
+              value={formData.technology}
               onChange={handleChange}
               placeholder="e.g. MERN – Jan 2025"
               className={`w-full rounded-xl border px-4 py-3 text-sm
@@ -122,82 +96,9 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
                 bg-white text-slate-800
                 focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40 transition`}
             />
-            {errors.name && (
-              <p className="text-xs text-red-500">{errors.name}</p>
-            )}
-          </div>
-
-          {/* Technology */}
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-600">
-              Technology
-            </label>
-            <select
-              name="technology"
-              value={formData.technology}
-              onChange={handleChange}
-              className={`w-full rounded-xl border px-4 py-3 text-sm
-                ${errors.technology ? "border-red-400" : "border-slate-300"}
-                bg-white text-slate-800
-                focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40 transition`}
-            >
-              <option value="">Select technology</option>
-                {ConstantService.Technologys.map((tech) => (
-                <option key={tech.value} value={tech.value}>
-                  {tech.label}
-                </option>
-              ))}
-            </select>
             {errors.technology && (
               <p className="text-xs text-red-500">{errors.technology}</p>
             )}
-          </div>
-        </div>
-
-        {/* -------- DATES -------- */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-slate-700">
-            Schedule
-          </h3>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-600">
-                Start Date
-              </label>
-              <input
-                type="date"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleChange}
-                className={`w-full rounded-xl border px-4 py-3 text-sm
-                  ${errors.startDate ? "border-red-400" : "border-slate-300"}
-                  bg-white text-slate-800
-                  focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40 transition`}
-              />
-              {errors.startDate && (
-                <p className="text-xs text-red-500">{errors.startDate}</p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-slate-600">
-                End Date
-              </label>
-              <input
-                type="date"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleChange}
-                className={`w-full rounded-xl border px-4 py-3 text-sm
-                  ${errors.endDate ? "border-red-400" : "border-slate-300"}
-                  bg-white text-slate-800
-                  focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40 transition`}
-              />
-              {errors.endDate && (
-                <p className="text-xs text-red-500">{errors.endDate}</p>
-              )}
-            </div>
           </div>
         </div>
 

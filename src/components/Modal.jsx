@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 
-const Modal = ({ open, onClose, title, children }) => {
+const Modal = ({ css, open, onClose, title, children }) => {
   if (!open) return null;
 
   return (
@@ -19,16 +19,16 @@ const Modal = ({ open, onClose, title, children }) => {
 
       {/* -------- Modal Box -------- */}
       <div
-        className="
+        className={`
           relative z-10
-          w-full max-w-2xl
+          ${css ? css : 'w-full'}
           bg-white/80 backdrop-blur-xl
           rounded-3xl
           border border-white/40
           shadow-[0_30px_80px_rgba(0,0,0,0.18)]
           p-8
           animate-in fade-in zoom-in-95 duration-200
-        "
+        `}
       >
         {/* -------- Header -------- */}
         <div className="flex items-center justify-between mb-6">

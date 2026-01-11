@@ -1,5 +1,17 @@
 export const ConstantService = {
 
+  statusGradient: {
+    IN_PROGRESS: "from-orange-500 via-orange-300 to-orange-100",
+    COMPLETED: "from-green-500 via-green-300 to-green-100",
+    ASSIGNED: "from-gray-500 via-gray-300 to-gray-100",
+  },
+
+  bubblesGradient: {
+    IN_PROGRESS: "orange-500/50 ",
+    COMPLETED: "green-500/50 ",
+    ASSIGNED: "gray-500/50 ",
+  },
+
   Shift: [
     { value: true, label: "Morning" },
     { value: false, label: "Afternoon" },

@@ -31,47 +31,47 @@ const PreBoard = () => {
     return modulesData;
   }, [docProgressMap, videoProgressMap]);
 
+  const loadProgress = async () => {
+    try {
+      const userRes = await ApiService.post(
+        "/api/users/auth/me",
+        { accessToken }
+      );
+      setUser(userRes);
+
+      const [videoRes, docRes] = await Promise.all([
+        ApiService.post("/api/preboard/video-progress/all", {
+          userId: userRes.id,
+        }),
+        ApiService.post("/api/predoc/userprogress", {
+          userId: userRes.id,
+        }),
+      ]);
+
+      const videoMap = {};
+      videoRes.forEach((row) => {
+        videoMap[row.module_id] = {
+          lastWatchedSecond: row.last_watched_second,
+          progress: row.progress,
+          completed: row.completed,
+        };
+      });
+
+      const docMap = {};
+      docRes.progress.forEach((row) => {
+        docMap[row.module_id] = {
+          status: row.status.toLowerCase(),
+        };
+      });
+
+      setVideoProgressMap(videoMap);
+      setDocProgressMap(docMap);
+    } catch (err) {
+      console.error("Failed to load progress", err);
+    }
+  };
+
   useEffect(() => {
-    const loadProgress = async () => {
-      try {
-        const userRes = await ApiService.post(
-          "/api/users/auth/me",
-          { accessToken }
-        );
-        setUser(userRes);
-
-        const [videoRes, docRes] = await Promise.all([
-          ApiService.post("/api/preboard/video-progress/all", {
-            userId: userRes.id,
-          }),
-          ApiService.post("/api/predoc/userprogress", {
-            userId: userRes.id,
-          }),
-        ]);
-
-        const videoMap = {};
-        videoRes.forEach((row) => {
-          videoMap[row.module_id] = {
-            lastWatchedSecond: row.last_watched_second,
-            progress: row.progress,
-            completed: row.completed,
-          };
-        });
-
-        const docMap = {};
-        docRes.progress.forEach((row) => {
-          docMap[row.module_id] = {
-            status: row.status.toLowerCase(),
-          };
-        });
-
-        setVideoProgressMap(videoMap);
-        setDocProgressMap(docMap);
-      } catch (err) {
-        console.error("Failed to load progress", err);
-      }
-    };
-
     loadProgress();
   }, [accessToken]);
 
@@ -186,16 +186,16 @@ const PreBoard = () => {
     const payload = {
       user_id: user?.id,
       module_id: data.id,
-      status: data.status.toLowerCase(),
+      status: data.status.toUpperCase(),
     };
 
     try {
       await ApiService.post("/api/predoc/upsert", payload);
-
       setDocProgressMap((prev) => ({
         ...prev,
         [data.id]: { status: payload.status },
       }));
+      loadProgress()
     } catch (err) {
       console.error("Doc status update failed", err);
     }
