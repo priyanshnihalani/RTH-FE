@@ -8,7 +8,7 @@ import {
   IconButton,
 } from "@mui/material";
 
-import { ArrowDown, ArrowDown01, ArrowUp, CalendarDays } from "lucide-react";
+import { ArrowDown, ArrowDown01, ArrowUp, Award, CalendarDays, File, FileTextIcon, PenIcon, Save, Trash2Icon, X } from "lucide-react";
 import { ApiService } from "../../Services/ApiService";
 import BlockingLoader from "../../components/BlockingLoader";
 import Modal from "../../components/Modal";
@@ -383,7 +383,7 @@ const Trainee = () => {
     <>
       {loading && <BlockingLoader />}
 
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-8 space-y-8">
+      <div className="min-h-screen bg-linear-to-br from-orange-50 via-white to-orange-100 p-8 space-y-8">
         {/* HEADER */}
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-6 shadow">
           <h1 className="text-3xl font-bold">Trainee Management</h1>
@@ -477,7 +477,7 @@ const Trainee = () => {
 
                   <button
                     onClick={() => setOpenId(openId === t.user_id ? null : t.user_id)}
-                    className="text-orange-600 text-xs font-medium mt-1 flex items-center gap-1"
+                    className="cursor-pointer text-orange-600 text-xs font-medium mt-1 flex items-center gap-1"
                   >
                     {openId === t.user_id ? (
                       <>
@@ -621,42 +621,90 @@ const Trainee = () => {
                 <div className="border-t px-4 py-3 flex justify-between items-center">
                   <div className="flex gap-3">
                     {isEdit ? (
-                      <button
-                        onClick={() => saveTrainee(t.user_id)}
-                        className="text-orange-600 text-sm font-medium"
-                      >
-                        Save
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => startEdit(t)}
-                        className="text-orange-600 text-sm font-medium"
-                      >
-                        Edit
-                      </button>
-                    )}
+                      <>
+                        {/* Save */}
+                        <button
+                          onClick={() => saveTrainee(t.user_id)}
+                          className="
+          group flex items-center gap-2
+          w-9 hover:w-24
+          rounded-full bg-primary text-white
+          px-2 py-1
+          overflow-hidden
+          transition-all duration-300 ease-in-out
+          cursor-pointer
+        "
+                        >
+                          <Save size={18} className="shrink-0" />
+                          <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            Save
+                          </span>
+                        </button>
 
-                    <button
-                      onClick={() => deleteTrainee(t.user_id)}
-                      className="text-red-500 text-sm font-medium"
-                    >
-                      Delete
-                    </button>
+                        {/* Cancel */}
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="
+          group flex items-center gap-2
+          w-9 hover:w-28
+          rounded-full bg-primary text-white
+          px-2 py-2
+          overflow-hidden
+          transition-all duration-300 ease-in-out
+          cursor-pointer
+        "
+                        >
+                          <X size={18} className="shrink-0" />
+                          <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            Cancel
+                          </span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* Edit */}
+                        <button
+                          onClick={() => startEdit(t)}
+                          className="
+          group flex items-center gap-2
+          w-9 hover:w-24
+          rounded-full bg-primary text-white
+          px-2 py-2
+          overflow-hidden
+          transition-all duration-300 ease-in-out
+        "
+                        >
+                          <PenIcon size={18} className="shrink-0" />
+                          <span className="cursor-pointer whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            Edit
+                          </span>
+                        </button>
+
+                        {/* Delete */}
+                        <button
+                          onClick={() => deleteTrainee(t.user_id)}
+                          className="
+          group flex items-center gap-2
+          w-9 hover:w-28
+          rounded-full bg-primary text-white
+          px-2 py-2
+          overflow-hidden
+          transition-all duration-300 ease-in-out
+        "
+                        >
+                          <Trash2Icon size={18} className="shrink-0" />
+                          <span className="cursor-pointer whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            Delete
+                          </span>
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex gap-2">
-                    <Button
+                    {/* Certificate */}
+                    <button
                       disabled={t.trainingStatus !== "completed"}
-                      size="small"
-                      variant="contained"
-                      sx={{
-                        backgroundColor: "#FB8924",
-                        textTransform: "none",
-                        fontSize: "11px",
-                        minWidth: 90,
-                        height: 28,
-                        "&:hover": { backgroundColor: "#f57c00" },
-                      }}
                       onClick={() => {
                         setGenerateType("certificate");
                         setSelectedTrainee(t);
@@ -672,22 +720,26 @@ const Trainee = () => {
                         });
                         setOpenGenerateModal(true);
                       }}
+                      className="
+      group flex items-center gap-2
+      w-9 hover:w-32
+      rounded-full bg-primary text-white
+      px-2 py-2
+      overflow-hidden
+      transition-all duration-300 ease-in-out
+      disabled:opacity-50 disabled:cursor-not-allowed
+      cursor-pointer
+    "
                     >
-                      Certificate
-                    </Button>
+                      <Award size={18} className="shrink-0" />
+                      <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        Certificate
+                      </span>
+                    </button>
 
-                    <Button
+                    {/* Offer Letter */}
+                    <button
                       disabled={t.trainingStatus !== "completed"}
-                      size="small"
-                      variant="contained"
-                      sx={{
-                        backgroundColor: "#FB8924",
-                        textTransform: "none",
-                        fontSize: "11px",
-                        minWidth: 90,
-                        height: 28,
-                        "&:hover": { backgroundColor: "#f57c00" },
-                      }}
                       onClick={() => {
                         setGenerateType("offer");
                         setSelectedTrainee(t);
@@ -705,10 +757,24 @@ const Trainee = () => {
                         });
                         setOpenGenerateModal(true);
                       }}
+                      className="
+      group flex items-center gap-2
+      w-9 hover:w-32
+      rounded-full bg-primary text-white
+      p-2
+      overflow-hidden
+      transition-all duration-300 ease-in-out
+      disabled:opacity-50 disabled:cursor-not-allowed
+      cursor-pointer
+    "
                     >
-                      Offer Letter
-                    </Button>
+                      <FileTextIcon size={18} className="shrink-0" />
+                      <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        Offer Letter
+                      </span>
+                    </button>
                   </div>
+
                 </div>
               </div>
             );
@@ -747,7 +813,7 @@ const Trainee = () => {
                         ? "border-red-400 animate-shake"
                         : "border-slate-300"
                       }
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.joinedDate && (
                     <p className="text-xs text-red-500">{errors.joinedDate}</p>
@@ -769,7 +835,7 @@ const Trainee = () => {
                         ? "border-red-400 animate-shake"
                         : "border-slate-300"
                       }
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.endDate && (
                     <p className="text-xs text-red-500">{errors.endDate}</p>
@@ -791,7 +857,7 @@ const Trainee = () => {
                         ? "border-red-400 animate-shake"
                         : "border-slate-300"
                       }
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.name && (
                     <p className="text-xs text-red-500">{errors.name}</p>
@@ -811,7 +877,7 @@ const Trainee = () => {
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
       ${errors.duration ? "border-red-400" : "border-slate-300"}
-      bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+      bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   >
                     <option value="">Select duration</option>
                     {ConstantService.Duration.map((tech) => (
@@ -843,7 +909,7 @@ const Trainee = () => {
                         : "border-slate-300"
                       }
                           bg-white text-slate-800
-                          focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40 transition`}
+                          focus:outline-none focus:ring-2 focus:ring-primary/40 transition`}
                   >
                     <option value="">Select Batch</option>
                     {batches.map((tech) => (
@@ -871,7 +937,7 @@ const Trainee = () => {
                         ? "border-red-400 animate-shake"
                         : "border-slate-300"
                       }
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.manager && (
                     <p className="text-xs text-red-500">{errors.manager}</p>
@@ -895,6 +961,7 @@ const Trainee = () => {
       text-slate-700
       hover:bg-slate-100
       transition
+      cursor-pointer
     "
               >
                 Cancel
@@ -904,9 +971,10 @@ const Trainee = () => {
                 type="submit"
                 className="
       px-5 py-2 text-sm font-semibold rounded-xl
-      bg-gradient-to-r from-[#FB8924] to-[#f27f1c]
+      bg-linear-to-r from-primary to-primary-dark
       text-white shadow-md
       transition active:scale-95
+      cursor-pointer
     "
               >
                 Save
@@ -945,7 +1013,7 @@ const Trainee = () => {
                         ? "border-red-400 animate-shake"
                         : "border-slate-300"
                       }
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.joinedAt && (
                     <p className="text-xs text-red-500">{errors.joinedAt}</p>
@@ -965,7 +1033,7 @@ const Trainee = () => {
                         ? "border-red-400 animate-shake"
                         : "border-slate-300"
                       }
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.name && (
                     <p className="text-xs text-red-500">{errors.name}</p>
@@ -982,7 +1050,7 @@ const Trainee = () => {
                     onChange={(e) => handleChange("firstName", e.target.value)}
                     className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.firstName ? "border-red-400" : "border-slate-300"}
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.firstName && (
                     <p className="text-xs text-red-500">{errors.firstName}</p>
@@ -999,7 +1067,7 @@ const Trainee = () => {
                     onChange={(e) => handleChange("duration", e.target.value)}
                     className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.duration ? "border-red-400" : "border-slate-300"}
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.duration && (
                     <p className="text-xs text-red-500">{errors.duration}</p>
@@ -1016,7 +1084,7 @@ const Trainee = () => {
                     onChange={(e) => handleChange("technology", e.target.value)}
                     className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.technology ? "border-red-400" : "border-slate-300"}
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.technology && (
                     <p className="text-xs text-red-500">{errors.technology}</p>
@@ -1033,7 +1101,7 @@ const Trainee = () => {
                     onChange={(e) => handleChange("compensation", e.target.value)}
                     className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.compensation ? "border-red-400" : "border-slate-300"}
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.compensation && (
                     <p className="text-xs text-red-500">{errors.compensation}</p>
@@ -1052,7 +1120,7 @@ const Trainee = () => {
                   onChange={(e) => handleChange("signerName", e.target.value)}
                   className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.signerName ? "border-red-400" : "border-slate-300"}
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                 />
                 {errors.signerName && (
                   <p className="text-xs text-red-500">{errors.signerName}</p>
@@ -1071,7 +1139,7 @@ const Trainee = () => {
                   className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.signerDesignation ? "border-red-400" : "border-slate-300"
                     }
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                 />
                 {errors.signerDesignation && (
                   <p className="text-xs text-red-500">
@@ -1089,7 +1157,7 @@ const Trainee = () => {
                   onChange={(e) => handleChange("contactPerson", e.target.value)}
                   className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.contactPerson ? "border-red-400" : "border-slate-300"}
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                 />
                 {errors.contactPerson && (
                   <p className="text-xs text-red-500">{errors.contactPerson}</p>
@@ -1105,7 +1173,7 @@ const Trainee = () => {
                   onChange={(e) => handleChange("signerMobile", e.target.value)}
                   className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.signerMobile ? "border-red-400" : "border-slate-300"}
-              bg-white focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                 />
                 {errors.signerMobile && (
                   <p className="text-xs text-red-500">{errors.signerMobile}</p>
@@ -1127,6 +1195,7 @@ const Trainee = () => {
       text-slate-700
       hover:bg-slate-100
       transition
+      cursor-pointer
     "
               >
                 Cancel
@@ -1136,9 +1205,10 @@ const Trainee = () => {
                 type="submit"
                 className="
       px-5 py-2 text-sm font-semibold rounded-xl
-      bg-gradient-to-r from-[#FB8924] to-[#f27f1c]
+      bg-linear-to-r from-primary to-primary-dark
       text-white shadow-md
       transition active:scale-95
+      cursor-pointer
     "
               >
                 Save

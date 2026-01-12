@@ -270,25 +270,25 @@ const Trainers = () => {
               </div>
 
               {/* Footer */}
-              <div className="border-t px-4 py-3 flex justify-around gap-2">
+              <div className="border-t px-4 py-3 flex justify-around gap-2 cursor-pointer">
                 <div className="flex  items-center text-primary">
-                  <button className="rounded-full p-1"
+                  <button className="flex  items-center gap-1 rounded-full p-1 cursor-pointer"
                     onClick={() => openAssignModal(trainer)}
                     title="Edit"
                   >
                     <Pencil size={18} />
+                    <span className="text-sm font-medium">Edit</span>
                   </button>
-                  <span className="text-sm font-medium">Edit</span>
                 </div>
 
-                <div className="flex items-center text-primary">
-                  <button className="rounded-full p-1"
+                <div className="flex items-center text-primary cursor-pointer">
+                  <button className="flex  items-center gap-1 rounded-full p-1 cursor-pointer"
                     onClick={() => handleDelete(trainer.id)}
                     title="Delete"
                   >
                     <Trash2 size={18} />
+                    <span className="text-sm font-medium">Delete</span>
                   </button>
-                  <span className="text-sm font-medium">Delete</span>
                 </div>
               </div>
 
@@ -344,6 +344,7 @@ const Trainers = () => {
                 <button
                   onClick={() => setEditingTrainer(null)}
                   className="
+                  cursor-pointer
               px-4 py-2
               rounded-xl
               border border-slate-300
@@ -357,6 +358,7 @@ const Trainers = () => {
                 <button
                   onClick={saveBatchAssignment}
                   className="
+                  cursor-pointer
               px-5 py-2
               rounded-xl
               text-sm font-medium

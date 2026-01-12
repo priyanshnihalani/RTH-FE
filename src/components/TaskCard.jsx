@@ -40,7 +40,7 @@ const TaskCard = ({ task, onEdit, onOpen}) => {
     <div
       draggable={!isEditing}
       onDragStart={handleDragStart}
-      onClick={() => !isEditing && onOpen?.(task)}
+      // onClick={() => !isEditing && onOpen?.(task)}
       className="
         bg-white
         rounded-2xl
@@ -130,11 +130,11 @@ const TaskCard = ({ task, onEdit, onOpen}) => {
         <span>{task.dueDate}</span>
       </div>
 
-      <div className="flex justify-between items-center text-xs font-medium text-gray-500 border-t border-dashed pt-2 mt-2">
-        <div className="flex items-center gap-1">
+      <div className="flex justify-end items-center text-xs font-medium text-gray-500 border-t border-dashed pt-2 mt-2">
+        {/* <div className="flex items-center gap-1">
           <MessageCircle size={14} />
           <span>{task.messageCount || 0}</span>
-        </div>
+        </div> */}
 
         <span>{formatToMonthYear(task.createdAt)}</span>
       </div>
