@@ -6,6 +6,7 @@ import BlockingLoader from "../../components/BlockingLoader";
 import Cookies from 'js-cookie'
 import { toast } from "react-toastify";
 import ToastLogo from "../../components/ToastLogo";
+import { useEffect } from "react";
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -21,6 +22,13 @@ export default function Register() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
     const [loading, setLoading] = useState(false)
+
+    
+    useEffect(() => {
+        if (Cookies.get('waitingToken')) {
+            navigate('/', { replace: true })
+        }
+    }, [])
 
     const validate = () => {
         const newErrors = {};
@@ -70,25 +78,25 @@ export default function Register() {
                 expires: 365,
                 sameSite: "lax",
             });
-             toast.success(res.message || "Register Successfully!", {
-                      icon: <ToastLogo />,
-                      style: {
-                        color: "#16a34a",
-                      },
-                      autoClose: 2000,
-                    });
-            navigate("/waiting", { replace: true });
-             
-        }  
-        catch (err) {
-              toast.error(err?.response?.data?.message || err.message || "Registration failed!", {
+            toast.success(res.message || "Register Successfully!", {
                 icon: <ToastLogo />,
                 style: {
-                  color: "#dc2626",
+                    color: "#16a34a",
+                },
+                autoClose: 2000,
+            });
+            navigate("/waiting", { replace: true });
+
+        }
+        catch (err) {
+            toast.error(err?.response?.data?.message || err.message || "Registration failed!", {
+                icon: <ToastLogo />,
+                style: {
+                    color: "#dc2626",
                 },
                 autoClose: 3000,
-              });
-            }finally {
+            });
+        } finally {
             setLoading(false);
         }
     };

@@ -239,7 +239,7 @@ const Trainee = () => {
       const link = document.createElement("a");
 
       link.href = pdfUrl;
-      link.download = "Offer_Letter.pdf";
+      link.download = `${offerForm.name.trim()}_offer_letter.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -325,7 +325,7 @@ const Trainee = () => {
       const link = document.createElement("a");
 
       link.href = pdfUrl;
-      link.download = "Certificate.pdf";
+      link.download = `${offerForm.name.trim()}_certificate.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

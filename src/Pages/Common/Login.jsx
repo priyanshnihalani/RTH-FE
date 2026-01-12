@@ -6,6 +6,7 @@ import BlockingLoader from "../../components/BlockingLoader";
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 import ToastLogo from "../../components/ToastLogo";
+import { useEffect } from "react";
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -13,26 +14,28 @@ const Login = () => {
         password: "",
     });
 
+    useEffect(() => {
+        if (Cookies.get('waitingToken')) {
+            navigate('/', {replace: true})
+        }
+    }, [])
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
 
-    // 🔹 Handle input change
     const handleChange = (e) => {
         setFormData({
             ...formData,
             [e.target.id]: e.target.value,
         });
 
-        // Remove error while typing
         setErrors({
             ...errors,
             [e.target.id]: "",
         });
     };
 
-    // 🔹 Validation logic
     const validate = () => {
         let newErrors = {};
 
@@ -77,23 +80,23 @@ const Login = () => {
                 navigate("/waiting", { replace: true });
                 return;
             }
-              toast.success(res.message || "Login Successfully!", {
-                      icon: <ToastLogo />,
-                      style: {
-                        color: "#16a34a",
-                      },
-                      autoClose: 2000,
-                    });
+            toast.success(res.message || "Login Successfully!", {
+                icon: <ToastLogo />,
+                style: {
+                    color: "#16a34a",
+                },
+                autoClose: 2000,
+            });
             navigate("/", { replace: true })
 
         } catch (err) {
-              toast.error(err?.response?.data?.message || err.message || "Login failed!", {
+            toast.error(err?.response?.data?.message || err.message || "Login failed!", {
                 icon: <ToastLogo />,
                 style: {
-                  color: "#dc2626",
+                    color: "#dc2626",
                 },
                 autoClose: 3000,
-              });
+            });
         } finally {
             setLoading(false);
         }
