@@ -636,7 +636,7 @@ const Trainee = () => {
         "
                         >
                           <Save size={18} className="shrink-0" />
-                          <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             Save
                           </span>
                         </button>
@@ -655,7 +655,7 @@ const Trainee = () => {
         "
                         >
                           <X size={18} className="shrink-0" />
-                          <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             Cancel
                           </span>
                         </button>
@@ -675,7 +675,7 @@ const Trainee = () => {
         "
                         >
                           <PenIcon size={18} className="shrink-0" />
-                          <span className="cursor-pointer whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <span className="text-sm cursor-pointer whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             Edit
                           </span>
                         </button>
@@ -693,7 +693,7 @@ const Trainee = () => {
         "
                         >
                           <Trash2Icon size={18} className="shrink-0" />
-                          <span className="cursor-pointer whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <span className="text-sm cursor-pointer whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             Delete
                           </span>
                         </button>
@@ -732,7 +732,7 @@ const Trainee = () => {
     "
                     >
                       <Award size={18} className="shrink-0" />
-                      <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         Certificate
                       </span>
                     </button>
@@ -769,7 +769,7 @@ const Trainee = () => {
     "
                     >
                       <FileTextIcon size={18} className="shrink-0" />
-                      <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         Offer Letter
                       </span>
                     </button>
