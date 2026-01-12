@@ -17,6 +17,11 @@ export const ConstantService = {
     { value: false, label: "Afternoon" },
   ],
 
+  Branch: [
+    {label: "Ahemdabad", value: "AHEMDABAD"},
+    {label: "Junagadh", value: "JUNAGADH"},
+  ],
+  
   YesNo: [
     { label: "Yes", value: true },
     { label: "No", value: false },

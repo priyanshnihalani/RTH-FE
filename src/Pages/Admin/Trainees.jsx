@@ -1,25 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Select,
   MenuItem,
   TextField,
   Button,
-  Stack,
   IconButton,
-  Menu,
 } from "@mui/material";
-import { CalendarDays } from "lucide-react";
+
+import { ArrowDown, ArrowDown01, ArrowUp, CalendarDays } from "lucide-react";
 import { ApiService } from "../../Services/ApiService";
 import BlockingLoader from "../../components/BlockingLoader";
-import { Label } from "@mui/icons-material";
 import Modal from "../../components/Modal";
 import ConstantService from "../../Services/ConstantService";
 import dayjs from "dayjs";
@@ -29,7 +20,7 @@ import { toast } from "react-toastify";
 
 const Trainee = () => {
   const navigate = useNavigate();
-
+  const [openId, setOpenId] = useState(null);
   const [trainees, setTrainees] = useState([]);
   const [batches, setBatches] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -73,10 +64,10 @@ const Trainee = () => {
       .map((t) => ({
         ...t,
         education: t.registration?.education ?? "",
+        branch: t.registration?.branch ?? "",
         college: t.registration?.college ?? "",
         duration: t.registration?.duration ?? "",
         admissionStatus: t.registration?.admissionStatus ?? t.admissionStatus,
-        technology: t.registration?.technology ?? t.technology,
         shift: t.registration?.shift ?? t.shift,
         ndaSigned: t.registration?.ndaSigned ?? t.ndaSigned,
         remarks2: t.registration?.remarks2 ?? t.remarks2,
@@ -116,9 +107,9 @@ const Trainee = () => {
       remainingFee: t.remainingFee ?? 0,
       admissionStatus: t.admissionStatus || "pending",
       trainingStatus: t.trainingStatus || "not_started",
-      technology: t.technology || "",
       shift: t.shift ?? false,
       joinedDate: t.joinedDate || "",
+      branch: t.branch || "",
       duration: t.duration || "",
       wantToBoard: t.wantToBoard,
       certificateIssued: !!t.certificateIssued,
@@ -134,7 +125,7 @@ const Trainee = () => {
   const saveTrainee = async (userId) => {
     setLoading(true);
     try {
-      const res = await ApiService.put(
+      await ApiService.put(
         `/api/trainees/update/${userId}`,
         draft
       );
@@ -197,10 +188,6 @@ const Trainee = () => {
 
     if (!offerForm.duration) {
       errors.duration = "Duration is required";
-    }
-
-    if (!offerForm.technology) {
-      errors.technology = "Technology is required";
     }
 
     if (!offerForm.compensation) {
@@ -373,6 +360,7 @@ const Trainee = () => {
     { label: "College", width: 200 },
     { label: "Phone", width: 200 },
     { label: "Batch", width: 200 },
+    { label: "Branch", width: 200 },
     { label: "Remaining Fees", width: 160 },
     { label: "Admission", width: 130 },
     { label: "Training", width: 130 },
@@ -382,7 +370,6 @@ const Trainee = () => {
     { label: "WantToBoard", width: 140 },
     { label: "JoiningDate", width: 130 },
     { label: "EndDate", width: 130 },
-    { label: "Technologys", width: 200 },
     { label: "NDA", width: 90 },
     { label: "Aadhaar", width: 110 },
     { label: "Remarks", width: 200 },
@@ -404,523 +391,333 @@ const Trainee = () => {
         </div>
 
         {/* TABLE */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow overflow-hidden">
-          <TableContainer component={Paper} elevation={0}>
-            <Table size="small" sx={{ minWidth: 1400 }}>
-              <TableHead sx={{ background: "#FB8924" }}>
-                <TableRow>
-                  {tableColumns.map((col) => (
-                    <TableCell
-                      key={col.label}
+        <div className="bg-white p-4 rounded-2xl grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
+
+          {trainees.map((t) => {
+            const isEdit = editingId === t.user_id;
+
+            return (
+              <div
+                key={t.user_id}
+                className="rounded-2xl overflow-hidden  shadow bg-white flex flex-col"
+              >
+                {/* Header */}
+                <div className="bg-orange-50 h-36 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
+                    <span className="text-orange-600 font-semibold text-lg">
+                      {t.name
+                        ?.split(" ")
+                        .map(w => w[0])
+                        .join("")
+                        .toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+
+
+                {/* Body */}
+                <div className="p-4 space-y-2 text-sm flex-1">
+                  <Row label="Name">
+                    {isEdit ? (
+                      <TextField size="small" value={draft.name} onChange={(e) => updateDraft("name", e.target.value)} />
+                    ) : t.name}
+                  </Row>
+
+                  <Row label="Email">
+                    {isEdit ? (
+                      <TextField size="small" value={draft.email} onChange={(e) => updateDraft("email", e.target.value)} />
+                    ) : t.email}
+                  </Row>
+
+                  <Row label="Batch">
+                    {isEdit ? (
+                      <Select
+                        size="small"
+                        value={draft.batches?.[0] ?? ""}
+                        displayEmpty
+                        onChange={(e) => updateDraft("batches", e.target.value ? [e.target.value] : [])}
+                        renderValue={(s) => {
+                          if (!s) return "Select Batch";
+                          return batches.find(b => b.id === s)?.technology || "-";
+                        }}
+                      >
+                        {batches.map(b => (
+                          <MenuItem key={b.id} value={b.id}>{b.technology}</MenuItem>
+                        ))}
+                      </Select>
+                    ) : (t.batches?.map(b => b.name).join(", ") || "-")}
+                  </Row>
+
+                  <Row label="Training Status">
+                    {isEdit ? (
+                      <Select size="small" value={draft.trainingStatus} onChange={(e) => updateDraft("trainingStatus", e.target.value)}>
+                        {ConstantService.TrainingStatus.map(s => (
+                          <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                        ))}
+                      </Select>
+                    ) : (ConstantService.TrainingStatus.find(s => s.value === t.trainingStatus)?.label || "-")}
+                  </Row>
+
+                  <Row label="Joined Date">
+                    {isEdit ? (
+                      <input
+                        type="date"
+                        value={draft.joinedDate ? dayjs(draft.joinedDate).format("YYYY-MM-DD") : ""}
+                        onChange={(e) => updateDraft("joinedDate", e.target.value)}
+                        className="px-2 py-1 border rounded-md text-xs"
+                      />
+                    ) : (t.joinedDate ? dayjs(t.joinedDate).format("DD-MM-YYYY") : "-")}
+                  </Row>
+
+                  <Row label="End Date">
+                    {t.joinedDate && t.duration
+                      ? calculateEndDate(t.joinedDate, t.duration).displaydate
+                      : "-"}
+                  </Row>
+
+                  <button
+                    onClick={() => setOpenId(openId === t.user_id ? null : t.user_id)}
+                    className="text-orange-600 text-xs font-medium mt-1 flex items-center gap-1"
+                  >
+                    {openId === t.user_id ? (
+                      <>
+                        <span>Hide details</span>
+                        <ArrowUp size={16} />
+                      </>
+                    ) : (
+                      <>
+                        <span>More details</span>
+                        <ArrowDown size={16} />
+                      </>
+                    )}
+                  </button>
+
+                  {openId === t.user_id &&
+                    (
+                      <>
+                        <Row label="Education">
+                          {isEdit ? (
+                            <TextField size="small" value={draft.education} onChange={(e) => updateDraft("education", e.target.value)} />
+                          ) : (t.education || "-")}
+                        </Row>
+
+                        <Row label="College">
+                          {isEdit ? (
+                            <TextField size="small" value={draft.college} onChange={(e) => updateDraft("college", e.target.value)} />
+                          ) : (t.college || "-")}
+                        </Row>
+
+                        <Row label="Phone">
+                          {isEdit ? (
+                            <TextField size="small" value={draft.phone} onChange={(e) => updateDraft("phone", e.target.value)} />
+                          ) : (t.phone || "-")}
+                        </Row>
+
+                        <Row label="Branch">
+                          {isEdit ? (
+                            <Select size="small" value={draft.branch ?? ""} displayEmpty onChange={(e) => updateDraft("branch", e.target.value)}>
+                              {ConstantService.Branch.map(b => (
+                                <MenuItem key={b.value} value={b.value}>{b.label}</MenuItem>
+                              ))}
+                            </Select>
+                          ) : (ConstantService.Branch.find(b => b.value === t.branch)?.label || "-")}
+                        </Row>
+
+                        <Row label="Remaining Fees">
+                          {isEdit ? (
+                            <TextField size="small" type="number" value={draft.remainingFees} onChange={(e) => updateDraft("remainingFees", e.target.value)} />
+                          ) : (t.remainingFees || 0)}
+                        </Row>
+
+                        <Row label="Admission Status">
+                          {isEdit ? (
+                            <Select size="small" value={draft.admissionStatus} onChange={(e) => updateDraft("admissionStatus", e.target.value)}>
+                              {ConstantService.AdmissionStatus.map(s => (
+                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                              ))}
+                            </Select>
+                          ) : (ConstantService.AdmissionStatus.find(s => s.value === t.admissionStatus)?.label || "-")}
+                        </Row>
+
+                        <Row label="Duration">
+                          {isEdit ? (
+                            <Select size="small" value={draft.duration ?? ""} displayEmpty onChange={(e) => updateDraft("duration", e.target.value)}>
+                              {ConstantService.Duration.map(d => (
+                                <MenuItem key={d.value} value={d.value}>{d.label}</MenuItem>
+                              ))}
+                            </Select>
+                          ) : (ConstantService.Duration.find(d => d.value === t.duration)?.label || "-")}
+                        </Row>
+
+                        <Row label="Certificate Issued">
+                          {isEdit ? (
+                            <Select size="small" value={draft.certificateIssued} onChange={(e) => updateDraft("certificateIssued", e.target.value)}>
+                              {ConstantService.YesNo.map(s => (
+                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                              ))}
+                            </Select>
+                          ) : (ConstantService.YesNo.find(s => s.value === t.certificateIssued)?.label || "No")}
+                        </Row>
+
+                        <Row label="Notes">
+                          <IconButton
+                            size="small"
+                            onClick={() => navigate(`/admin/notes/${t.user_id}`)}
+                          >
+                            <CalendarDays size={16} className="text-primary" />
+                          </IconButton>
+                        </Row>
+
+                        <Row label="Shift">
+                          {isEdit ? (
+                            <Select size="small" value={draft.shift ?? ""} onChange={(e) => updateDraft("shift", e.target.value)}>
+                              {ConstantService.Shift.map(s => (
+                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                              ))}
+                            </Select>
+                          ) : (ConstantService.Shift.find(s => s.value === t.shift)?.label || "-")}
+                        </Row>
+
+                        <Row label="Want To Board">
+                          {isEdit ? (
+                            <Select disabled={draft.trainingStatus != "completed"} size="small" value={draft.wantToBoard} onChange={(e) => updateDraft("wantToBoard", e.target.value)}>
+                              {ConstantService.YesNo.map(s => (
+                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                              ))}
+                            </Select>
+                          ) : (ConstantService.YesNo.find(s => s.value === t.wantToBoard)?.label || "-")}
+                        </Row>
+
+                        <Row label="NDA Signed">
+                          {isEdit ? (
+                            <Select size="small" value={draft.ndaSigned} onChange={(e) => updateDraft("ndaSigned", e.target.value)}>
+                              {ConstantService.YesNo.map(s => (
+                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                              ))}
+                            </Select>
+                          ) : (ConstantService.YesNo.find(s => s.value === t.ndaSigned)?.label || "No")}
+                        </Row>
+
+                        <Row label="Aadhar Submitted">
+                          {isEdit ? (
+                            <Select size="small" value={draft.adharSubmitted} onChange={(e) => updateDraft("adharSubmitted", e.target.value)}>
+                              {ConstantService.YesNo.map(s => (
+                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                              ))}
+                            </Select>
+                          ) : (ConstantService.YesNo.find(s => s.value === t.adharSubmitted)?.label || "No")}
+                        </Row>
+
+                        <Row label="Remarks">
+                          {isEdit ? (
+                            <TextField size="small" value={draft.remarks2 || ""} onChange={(e) => updateDraft("remarks2", e.target.value)} />
+                          ) : (t.remarks2 || "-")}
+                        </Row>
+                      </>
+                    )}
+
+                </div>
+                {/* Footer */}
+                <div className="border-t px-4 py-3 flex justify-between items-center">
+                  <div className="flex gap-3">
+                    {isEdit ? (
+                      <button
+                        onClick={() => saveTrainee(t.user_id)}
+                        className="text-orange-600 text-sm font-medium"
+                      >
+                        Save
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => startEdit(t)}
+                        className="text-orange-600 text-sm font-medium"
+                      >
+                        Edit
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => deleteTrainee(t.user_id)}
+                      className="text-red-500 text-sm font-medium"
+                    >
+                      Delete
+                    </button>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      disabled={t.trainingStatus !== "completed"}
+                      size="small"
+                      variant="contained"
                       sx={{
-                        color: "#fff",
-                        fontWeight: 600,
-                        width: col.width,
-                        minWidth: col.width,
-                        whiteSpace: "nowrap",
+                        backgroundColor: "#FB8924",
+                        textTransform: "none",
+                        fontSize: "11px",
+                        minWidth: 90,
+                        height: 28,
+                        "&:hover": { backgroundColor: "#f57c00" },
+                      }}
+                      onClick={() => {
+                        setGenerateType("certificate");
+                        setSelectedTrainee(t);
+                        setCertificate({
+                          joinedDate: t.joinedDate,
+                          endDate:
+                            t.joinedDate && t.duration
+                              ? calculateEndDate(t.joinedDate, t.duration).datepicker
+                              : "",
+                          name: t.name,
+                          duration: t.duration,
+                          batch: t?.batches[0].name,
+                        });
+                        setOpenGenerateModal(true);
                       }}
                     >
-                      {col.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
+                      Certificate
+                    </Button>
 
-              <TableBody>
-                {trainees.map((t) => {
-                  const isEdit = editingId === t.user_id;
-
-                  return (
-                    <TableRow key={t.user_id} hover>
-                      <TableCell>
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            value={draft.name}
-                            onChange={(e) =>
-                              updateDraft("name", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.name
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            value={draft.email}
-                            onChange={(e) =>
-                              updateDraft("email", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.email
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            value={draft.education}
-                            onChange={(e) =>
-                              updateDraft("education", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.education || "-"
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            value={draft.college}
-                            onChange={(e) =>
-                              updateDraft("college", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.college || "-"
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            value={draft.phone}
-                            onChange={(e) =>
-                              updateDraft("phone", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.phone || "-"
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.batches?.[0] ?? ""}
-                            displayEmpty
-                            onChange={(e) =>
-                              updateDraft("batches", e.target.value ? [e.target.value] : [])
-                            }
-                            renderValue={(selected) => {
-                              if (!selected) return "Select Batch";
-
-                              return (
-                                batches.find((b) => b.id === selected)?.name || "-"
-                              );
-                            }}
-                          >
-                            {batches.map((b) => (
-                              <MenuItem key={b.id} value={b.id}>
-                                {b.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          t.batches?.map((b) => b.name).join(", ") || "-"
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            type="number"
-                            value={draft.remainingFees}
-                            onChange={(e) =>
-                              updateDraft("remainingFees", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.remainingFees || 0
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.admissionStatus}
-                            onChange={(e) =>
-                              updateDraft("admissionStatus", e.target.value)
-                            }
-                          >
-                            {ConstantService.AdmissionStatus.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.AdmissionStatus.find(
-                            (s) => s.value === t.admissionStatus
-                          )?.label || "-"
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.trainingStatus}
-                            onChange={(e) =>
-                              updateDraft("trainingStatus", e.target.value)
-                            }
-                          >
-                            {ConstantService.TrainingStatus.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.TrainingStatus.find(
-                            (s) => s.value === t.trainingStatus
-                          )?.label || "-"
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.duration ?? ""}
-                            displayEmpty
-                            onChange={(e) =>
-                              updateDraft("duration", e.target.value)
-                            }
-                            renderValue={(selected) => {
-                              if (!selected) return "Select Duration";
-
-                              return (
-                                ConstantService.Duration.find(
-                                  (d) => d.value === selected
-                                )?.label || "-"
-                              );
-                            }}
-                          >
-                            {ConstantService.Duration.map((d) => (
-                              <MenuItem key={d.value} value={d.value}>
-                                {d.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.Duration.find(
-                            (d) => d.value === t.duration
-                          )?.label || "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.certificateIssued}
-                            onChange={(e) =>
-                              updateDraft("certificateIssued", e.target.value)
-                            }
-                          >
-                            {ConstantService.YesNo.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : ConstantService.YesNo.find(
-                          (s) => s.value === t.certificateIssued
-                        )?.label || t.certificateIssued ? (
-                          "Yes"
-                        ) : (
-                          "No"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.shift ?? "Select Shift"}
-                            onChange={(e) =>
-                              updateDraft("shift", e.target.value)
-                            }
-                          >
-                            {ConstantService.Shift.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.Shift.find((s) => s.value === t.shift)
-                            ?.label || true
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isEdit ? (
-                          <Select
-                            disabled={draft.trainingStatus != "completed"}
-                            size="small"
-                            value={draft.wantToBoard}
-                            onChange={(e) =>
-                              updateDraft("wantToBoard", e.target.value)
-                            }
-                          >
-                            {ConstantService.YesNo.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.YesNo.find((s) => s.value === t.wantToBoard)?.label || "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isEdit ? (
-                          <input
-                            type="date"
-                            value={
-                              draft.joinedDate
-                                ? dayjs(draft.joinedDate).format("YYYY-MM-DD")
-                                : ""
-                            }
-                            onChange={(e) =>
-                              updateDraft("joinedDate", e.target.value)
-                            }
-                            className="px-2 py-1 border rounded-md text-sm"
-                          />
-                        ) : t.joinedDate ? (
-                          dayjs(t.joinedDate).format("DD-MM-YYYY")
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        <div>
-                          {t.joinedDate && t.duration ? calculateEndDate(t.joinedDate, t.duration).displaydate : (
-                            "-"
-                          )}
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.technology ?? ""}
-                            displayEmpty
-                            onChange={(e) =>
-                              updateDraft("technology", e.target.value)
-                            }
-                            renderValue={(selected) => {
-                              if (!selected) return "Select Technology";
-
-                              return (
-                                ConstantService.Technologys.find(
-                                  (s) => s.value === selected
-                                )?.label || "-"
-                              );
-                            }}
-                          >
-                            {ConstantService.Technologys.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.Technologys.find(
-                            (s) => s.value === t.technology
-                          )?.label || "-"
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.ndaSigned}
-                            onChange={(e) =>
-                              updateDraft("ndaSigned", e.target.value)
-                            }
-                          >
-                            {ConstantService.YesNo.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : ConstantService.YesNo.find(
-                          (s) => s.value === t.ndaSigned
-                        )?.label || t.ndaSigned ? (
-                          "Yes"
-                        ) : (
-                          "No"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.adharSubmitted}
-                            onChange={(e) =>
-                              updateDraft("adharSubmitted", e.target.value)
-                            }
-                          >
-                            {ConstantService.YesNo.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : ConstantService.YesNo.find(
-                          (s) => s.value === t.adharSubmitted
-                        )?.label || t.adharSubmitted ? (
-                          "Yes"
-                        ) : (
-                          "No"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            value={draft.remarks2 || ""}
-                            onChange={(e) =>
-                              updateDraft("remarks2", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.remarks2 || "-"
-                        )}
-                      </TableCell>
-
-                      <TableCell align="center">
-                        <IconButton
-                          onClick={() => navigate(`/admin/notes/${t.user_id}`)}
-                        >
-                          <CalendarDays size={18} className="text-primary" />
-                        </IconButton>
-                      </TableCell>
-
-                      <TableCell>
-                        <Stack direction="row" spacing={1}>
-                          {isEdit ? (
-                            <Button
-                              size="small"
-                              variant="contained"
-                              onClick={() => saveTrainee(t.user_id)}
-                            >
-                              Save
-                            </Button>
-                          ) : (
-                            <Button
-                              size="small"
-                              variant="contained"
-                              onClick={() => startEdit(t)}
-                            >
-                              Edit
-                            </Button>
-                          )}
-                          <Button
-                            size="small"
-                            variant="contained"
-                            color="error"
-                            onClick={() => deleteTrainee(t.user_id)}
-                          >
-                            Delete
-                          </Button>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Stack direction="row" spacing={1}>
-                          <Button
-                            disabled={t?.trainingStatus !== "completed"}
-                            size="small"
-                            variant="contained"
-                            sx={{
-                              backgroundColor: "#FB8924",
-                              textTransform: "none",
-                              fontSize: "12px",
-                              minWidth: 95,
-                              height: 30,
-                              "&:hover": {
-                                backgroundColor: "#f57c00",
-                              },
-                            }}
-                            onClick={() => {
-                              setGenerateType("certificate");
-                              setSelectedTrainee(t);
-                              setCertificate({
-                                joinedDate: t.joinedDate,
-                                endDate: t.joinedDate && t.duration ? calculateEndDate(t.joinedDate, t.duration).datepicker : "",
-                                name: t.name,
-                                duration: t.duration,
-                                batch: t?.batches[0].name,
-                              });
-                              setOpenGenerateModal(true);
-                            }}
-                          >
-                            Certificate
-                          </Button>
-
-                          <Button
-                            disabled={t.trainingStatus !== "completed"}
-                            size="small"
-                            variant="contained"
-                            sx={{
-                              backgroundColor: "#FB8924",
-                              textTransform: "none",
-                              fontSize: "12px",
-                              minWidth: 95,
-                              height: 30,
-                              "&:hover": {
-                                backgroundColor: "#f57c00",
-                              },
-                            }}
-                            onClick={() => {
-                              setGenerateType("offer");
-                              setSelectedTrainee(t);
-
-                              setOfferForm({
-                                joinedAt: t.joinedDate || "",
-                                name: t.name || "",
-                                firstName: t.name?.split(" ")[0] || "",
-                                duration: t.duration || "",
-                                technology: t.technology || "",
-                                compensation: "",
-                                signerName: "",
-                                signerDesignation: "",
-                                contactPerson: "",
-                                signerMobile: "",
-                              });
-
-                              setOpenGenerateModal(true);
-                            }}
-                          >
-                            Offer Letter
-                          </Button>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    <Button
+                      disabled={t.trainingStatus !== "completed"}
+                      size="small"
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#FB8924",
+                        textTransform: "none",
+                        fontSize: "11px",
+                        minWidth: 90,
+                        height: 28,
+                        "&:hover": { backgroundColor: "#f57c00" },
+                      }}
+                      onClick={() => {
+                        setGenerateType("offer");
+                        setSelectedTrainee(t);
+                        setOfferForm({
+                          joinedAt: t.joinedDate || "",
+                          name: t.name || "",
+                          firstName: t.name?.split(" ")[0] || "",
+                          duration: t.duration || "",
+                          technology: t.batches[0].name || "",
+                          compensation: "",
+                          signerName: "",
+                          signerDesignation: "",
+                          contactPerson: "",
+                          signerMobile: "",
+                        });
+                        setOpenGenerateModal(true);
+                      }}
+                    >
+                      Offer Letter
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
       {generateType === "certificate" && (
         <Modal
+          css={"w-1/2"}
           open={openGenerateModal}
           onClose={() => setOpenGenerateModal(false)}
           title="Generate Certificate"
@@ -1050,8 +847,8 @@ const Trainee = () => {
                   >
                     <option value="">Select Batch</option>
                     {batches.map((tech) => (
-                      <option key={tech.name} value={tech.name}>
-                        {tech.name}
+                      <option key={tech.technology} value={tech.technology}>
+                        {tech.technology}
                       </option>
                     ))}
                   </select>
@@ -1120,6 +917,7 @@ const Trainee = () => {
       )}
       {generateType === "offer" && (
         <Modal
+          css={"w-1/2"}
           open={openGenerateModal}
           onClose={() => setOpenGenerateModal(false)}
           title="Generate Offer Letter"
@@ -1355,3 +1153,10 @@ const Trainee = () => {
 };
 
 export default Trainee;
+
+const Row = ({ label, children }) => (
+  <div className="flex justify-between items-center gap-2">
+    <span className="text-gray-500">{label}</span>
+    <div className="text-right font-medium">{children}</div>
+  </div>
+);

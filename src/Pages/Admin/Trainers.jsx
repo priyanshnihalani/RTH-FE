@@ -18,11 +18,9 @@ import BlockingLoader from "../../components/BlockingLoader";
 import { toast } from "react-toastify";
 import ToastLogo from "../../components/ToastLogo";
 
-/* ===================== MAIN COMPONENT ===================== */
 const Trainers = () => {
   const navigate = useNavigate();
 
-  /* -------------------- STATE -------------------- */
   const [trainers, setTrainers] = useState([]);
   const [batches, setBatches] = useState([]);
   const [search, setSearch] = useState("");
@@ -79,7 +77,7 @@ const Trainers = () => {
   const openAssignModal = (trainer) => {
     const batchIds =
       batches
-        .filter((b) => trainer.batches.includes(b.name))
+        .filter((b) => trainer.batches.includes(b.technology))
         .map((b) => b.id) || [];
 
     setEditingTrainer({
@@ -220,113 +218,90 @@ const Trainers = () => {
         </div>
 
         {/* ================= TABLE ================= */}
-        <div>
-          <TableContainer
-            className="overflow-x-scroll"
-            component={Paper}
-            elevation={0}
-            sx={{
-              backgroundColor: "transparent",
-              borderRadius: 6,
-            }}
-          >
-            <Table size="small">
-              <TableHead
-                sx={{
-                  background:
-                    "linear-gradient(90deg, #FB8924, #f27f1c)",
-                }}
-              >
-                <TableRow>
-                  {[
-                    "Name",
-                    "Email",
-                    "Batches",
-                    "Assigned Batches",
-                    "Notes",
-                    "Action",
-                  ].map((head) => (
-                    <TableCell
-                      key={head}
-                      sx={{
-                        color: "white",
-                        fontWeight: 600,
-                        fontSize: "0.85rem",
-                      }}
-                      align={head === "Batches" || head === "Notes" || head === "Action" ? "center" : "left"}
-                    >
-                      {head}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
+        <div className="grid grid-cols-1 bg-white p-4 rounded-2xl md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
+          {filteredTrainers.map((trainer) => (
+            <div
+              key={trainer.id}
+              className="rounded-2xl overflow-hidden  shadow bg-white flex flex-col"
+            >
+              {/* Header */}
+              <div className="bg-orange-50 h-28 flex items-center justify-center">
+                <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center">
+                  <span className="text-orange-600 font-semibold text-lg">
+                    {trainer.name
+                      ?.split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .toUpperCase()}
+                  </span>
+                </div>
+              </div>
 
-              <TableBody>
-                {filteredTrainers.map((trainer) => (
-                  <TableRow key={trainer.id} hover sx={{ background: "white" }}>
-                    <TableCell>{trainer.name}</TableCell>
-                    <TableCell>{trainer.email}</TableCell>
+              {/* Body */}
+              <div className="p-4 space-y-2 text-sm flex-1">
+                <Row label="Name">{trainer.name}</Row>
+                <Row label="Email">{trainer.email}</Row>
 
-                    <TableCell align="center">
-                      <Chip
-                        label={trainer.batches.length}
-                        size="small"
-                        sx={{
-                          backgroundColor: "rgba(251,137,36,0.15)",
-                          color: "#FB8924",
-                          fontWeight: 600,
-                        }}
-                      />
-                    </TableCell>
+                <Row label="Batches">
+                  <Chip
+                    label={trainer.batchCount}
+                    size="small"
+                    sx={{
+                      backgroundColor: "rgba(251,137,36,0.15)",
+                      color: "#FB8924",
+                      fontWeight: 600,
+                    }}
+                  />
+                </Row>
 
-                    <TableCell>
-                      {trainer.batches.join(", ") || "-"}
-                    </TableCell>
+                <Row label="Assigned">
+                  {trainer.batches.join(", ") || "-"}
+                </Row>
 
-                    <TableCell align="center">
-                      <IconButton
-                        onClick={() =>
-                          navigate(`/admin/notes/${trainer.id}`)
-                        }
-                        sx={{ color: "#FB8924" }}
-                      >
-                        <CalendarDays size={18} />
-                      </IconButton>
-                    </TableCell>
+                <Row label="Notes">
+                  <IconButton
+                    size="small"
+                    onClick={() => navigate(`/admin/notes/${trainer.id}`)}
+                    sx={{ color: "#FB8924" }}
+                  >
+                    <CalendarDays size={16} />
+                  </IconButton>
+                </Row>
+              </div>
 
-                    <TableCell align="center">
-                      <div>
+              {/* Footer */}
+              <div className="border-t px-4 py-3 flex justify-around gap-2">
+                <div className="flex  items-center text-primary">
+                  <button className="rounded-full p-1"
+                    onClick={() => openAssignModal(trainer)}
+                    title="Edit"
+                  >
+                    <Pencil size={18} />
+                  </button>
+                  <span className="text-sm font-medium">Edit</span>
+                </div>
 
-                        <IconButton
-                          onClick={() => openAssignModal(trainer)}
-                          sx={{ color: "#FB8924" }}
-                        >
-                          <Pencil size={18} />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => handleDelete(trainer.id)}
-                          sx={{ color: "#FB8924" }}
-                        >
-                          <Trash2 size={18} />
-                        </IconButton>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                <div className="flex items-center text-primary">
+                  <button className="rounded-full p-1"
+                    onClick={() => handleDelete(trainer.id)}
+                    title="Delete"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                  <span className="text-sm font-medium">Delete</span>
+                </div>
+              </div>
 
-                {filteredTrainers.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
-                      <span className="text-gray-400">
-                        No trainers found
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+            </div>
+          ))}
+
+          {filteredTrainers.length === 0 && (
+            <div className="col-span-full text-center py-10 text-gray-400">
+              No trainers found
+            </div>
+          )}
         </div>
+
 
         {/* ================= ASSIGN BATCH MODAL ================= */}
         {editingTrainer && (
@@ -360,7 +335,7 @@ const Trainers = () => {
                       }
                       onChange={() => toggleBatch(batch.id)}
                     />
-                    {batch.name}
+                    {batch.technology}
                   </label>
                 ))}
               </div>
@@ -402,3 +377,10 @@ const Trainers = () => {
 };
 
 export default Trainers;
+
+const Row = ({ label, children }) => (
+  <div className="flex justify-between items-center gap-2">
+    <span className="text-gray-500">{label}</span>
+    <div className="text-right font-medium">{children}</div>
+  </div>
+);

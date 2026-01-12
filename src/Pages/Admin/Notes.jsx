@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import {
@@ -83,6 +83,7 @@ const CustomToolbar = ({ label, view, onView, onNavigate }) => (
 
 export const Notes = () => {
   const { id } = useParams();
+  const location = useLocation()
   const [trainerEvents, setTrainerEvents] = useState({});
   const events = trainerEvents[id] || [];
 
@@ -147,8 +148,7 @@ export const Notes = () => {
   };
 
   const fetchUser = async () => {
-    const result = await ApiService.get("/api/users/auth/me")
-    console.log(result)
+    await ApiService.get("/api/users/auth/me")
   }
 
 
@@ -225,7 +225,7 @@ export const Notes = () => {
       </div>
 
       {/* ================= MODAL ================= */}
-      {(slot || selectedEvent) && (
+      {((slot || selectedEvent) && !location.pathname.split('/').includes('admin')) && (
         <div
           className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
           onClick={e => e.target === e.currentTarget && closeModal()}
@@ -271,7 +271,7 @@ export const Notes = () => {
                 </button>
               )}
 
-              {selectedEvent && !isEditing && (
+              { selectedEvent && !isEditing && (
                 <>
                   <button
                     onClick={() => setIsEditing(true)}

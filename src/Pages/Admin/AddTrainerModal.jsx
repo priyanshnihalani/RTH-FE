@@ -64,7 +64,7 @@ const AddTrainerModal = ({ open, onClose, onSuccess }) => {
 
     return (
         <>
-            <Modal open={open} onClose={onClose} title="Add Trainer">
+            <Modal css={"w-1/3"} open={open} onClose={onClose} title="Add Trainer">
                 <form
                     onSubmit={handleSubmit}
                     className="space-y-4 animate-in fade-in zoom-in-95 duration-200"

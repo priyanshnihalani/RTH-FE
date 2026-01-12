@@ -2,13 +2,11 @@ import {
     Layers,
     UserCheck,
     Users,
-    Plus,
     LogOut,
     AlertCircle,
-    ArrowRight
 } from "lucide-react";
 import { ApiService } from "../../Services/ApiService";
-import { replace, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import BlockingLoader from "../../components/BlockingLoader";
 import Cookies from "js-cookie"
@@ -80,7 +78,6 @@ export default function Dashboard() {
       p-6 space-y-10
     ">
 
-                {/* ================= HEADER ================= */}
                 <div className="
         flex items-center justify-between
         bg-white/70 backdrop-blur-xl
@@ -115,7 +112,6 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* ================= STATS ================= */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     {[
                         { label: "Total Batches", value: batches.length, icon: Layers },
@@ -146,26 +142,6 @@ export default function Dashboard() {
                         </div>
                     ))}
                 </div>
-
-                {/* ================= PENDING APPROVAL =================
-            <div className="
-        max-w-sm
-        bg-white/70 backdrop-blur-xl
-        rounded-3xl p-6
-        border border-white/40
-        shadow-[0_4px_10px_rgba(0,0,0,0.08)]
-      ">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <AlertCircle size={16} className="text-red-500" />
-                    Pending Approvals
-                </div>
-                <p className="text-3xl font-bold text-red-600 mt-2">3</p>
-                <p className="text-xs text-gray-500">
-                    Requires immediate attention
-                </p>
-            </div> */}
-
-                {/* ================= RECENT REGISTRATIONS ================= */}
                 <div className="
         bg-white/70 backdrop-blur-xl
         rounded-3xl p-6
@@ -184,9 +160,8 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="space-y-2 min-h-65 flex flex-col ">
+                    <div className={`space-y-2 min-h-65 flex flex-col ${trainees.length == 0 && "justify-center items-center"} `}>
                         {trainees.length === 0 ? (
-                            /* -------- EMPTY STATE -------- */
                             <div className="
       flex flex-col items-center justify-center
       text-center text-gray-400
