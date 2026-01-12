@@ -17,7 +17,7 @@ const Dashboard = () => {
         setBatches(res)
         const statusCount = res.reduce((acc, batch) => {
             batch.Tasks.forEach((tasks) => {
-                    acc[tasks.status] = (acc[tasks.status] || 0) + 1;
+                acc[tasks.status] = (acc[tasks.status] || 0) + 1;
             });
 
             return acc;
@@ -48,30 +48,73 @@ const Dashboard = () => {
                     <StatCard label="Pending Tasks" value={statusCount?.IN_PROGRESS || 0} type="pending" />
                     <StatCard label="Completed Tasks" value={statusCount?.COMPLETED || 0} type="completed" />
                 </div>
-                <div className="space-y-4 bg-white p-6 rounded-4xl shadow-[0_10px_10px_rgba(0,0,0,0.08)]">
-                    <h2 className="text-lg font-semibold text-gray-800">
-                        Assigned Batches
-                    </h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Assigned Batches */}
+                    <div className="bg-white rounded-3xl shadow p-6 space-y-4">
+                        <h2 className="text-lg font-semibold">Assigned Batches</h2>
 
-                    <div>
-                        {batches.length > 0 ? <div className="grid xl:grid-cols-2 gap-2">
-                            {batches.map(batch => (
-                                <BatchCard
-                                    key={batch?.id}
-                                    name={batch?.name}
-                                    tech={batch?.technology}
-                                    students={batch?.Trainees?.length}
-                                    onClick={() => navigate(`/trainer/batches/${batch.id}/${Date.now()}`)}
-                                />
-                            ))}
-                        </div>
-                            :
-                            <div className="flex items-center text-gray-500 justify-center text-2xl min-h-[50vh]">
-                                No Batches Are Assigned To You.
+                        {batches.length > 0 ? (
+                            <div className="space-y-3">
+                                {batches.map(batch => (
+                                    <BatchCard
+                                        key={batch.id}
+                                        name={batch.name}
+                                        tech={batch.technology}
+                                        students={batch.Trainees?.length}
+                                        onClick={() =>
+                                            navigate(`/trainer/batches/${batch.id}/${Date.now()}`)
+                                        }
+                                    />
+                                ))}
                             </div>
-                        }
+                        ) : (
+                            <div className="text-gray-500 text-sm py-6 text-center">
+                                No batches assigned yet.
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="bg-white rounded-3xl shadow p-6 space-y-4">
+                        <h2 className="text-lg font-semibold">Recent Tasks</h2>
+
+                        {batches.some(b => b.Tasks?.length) ? (
+                            <div className="space-y-3">
+                                {batches
+                                    .flatMap(b => b.Tasks.map(t => ({ ...t, batch: b.name })))
+                                    .slice(0, 5)
+                                    .map(task => (
+                                        <div
+                                            key={task.id}
+                                            className="flex items-center justify-between p-3 rounded-xl shadow hover:shadow-sm transition"
+                                        >
+                                            <div className="space-y-0.5">
+                                                <p className="text-sm font-medium text-gray-800">
+                                                    {task.title}
+                                                </p>
+                                                <p className="text-xs text-gray-500 line-clamp-1">
+                                                    {task.description}
+                                                </p>
+                                            </div>
+
+                                            <span
+                                                className={`text-xs px-2 py-1 rounded-full ${task.status === "COMPLETED"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : "bg-orange-100 text-orange-700"
+                                                    }`}
+                                            >
+                                                {task.status === "COMPLETED" ? "Completed" : task.status === "IN_PROGRESS" ? "In Progress" : "Assigned"}
+                                            </span>
+                                        </div>
+                                    ))}
+                            </div>
+                        ) : (
+                            <div className="text-gray-500 text-sm py-6 text-center">
+                                No tasks assigned yet.
+                            </div>
+                        )}
                     </div>
                 </div>
+
             </div>
         </>
     );
