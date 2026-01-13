@@ -61,6 +61,7 @@ const Trainee = () => {
     manager: "",
   });
   const [receipt, setReceipt] = useState({
+    t: "",
     name: "",
     amount: "",
     type: "",
@@ -381,10 +382,36 @@ const Trainee = () => {
       setLoading(false);
     }
   };
-  const handleReceiptSubmit = async () => {
+  const handleReceiptSubmit = async (t) => {
     if (!validateReceipt()) return;
     try {
-        setLoading(true);
+      setLoading(true);
+
+      const data = {
+        name: t.name || "",
+        education: t.education || "",
+        email: t.email || "",
+        college: t.college || "",
+        phone: t.phone || "",
+        batches: t.batches?.map(b => b.id) || [],
+        feesToPay: t.feesToPay ?? 0,
+        paidFees: parseInt(t?.paidFees) + parseInt(receipt?.amount) ?? 0,
+        admissionStatus: t.admissionStatus || "pending",
+        trainingStatus: t.trainingStatus || "not_started",
+        shift: t.shift ?? false,
+        joinedDate: t.joinedDate || "",
+        branch: t.branch || "",
+        duration: t.duration || "",
+        wantToBoard: t.wantToBoard,
+        certificateIssued: !!t.certificateIssued,
+        ndaSigned: !!t.ndaSigned,
+        adharSubmitted: !!t.adharSubmitted,
+        remarks2: t.remarks2 || "",
+      }
+
+      if (receipt.amount > t.paidFees || data.paidFees > data.feesToPay) {
+        return toast.error("Receipt Amount Should Not Exceed Paid Fees");
+      }
 
       const buffer = await ApiService.post(
         "/api/generateOfferLetter/receipt_generation",
@@ -408,6 +435,8 @@ const Trainee = () => {
       document.body.removeChild(link);
 
       URL.revokeObjectURL(pdfUrl);
+
+      await ApiService.put(`/api/trainees/update/${t.user_id}`, data);
       toast.success("Certificate generation Successfully!", {
         icon: <ToastLogo />,
         style: {
@@ -417,11 +446,11 @@ const Trainee = () => {
       });
       setOpenGenerateModal(false);
       setReceipt({
+        t: "",
         name: "",
         amount: "",
         type: "",
       });
-      console.log("reicep",)
       setErrors({});
     } catch (err) {
       console.error(err);
@@ -478,7 +507,7 @@ const Trainee = () => {
                         .toUpperCase()}
                     </span>
                   </div>
-                   {/* Notification Icon – Right Side
+                  {/* Notification Icon – Right Side
   <button
     onClick={() => handleNotify(t)}
     className="absolute right-4 top-1/2 -translate-y-1/2
@@ -487,7 +516,7 @@ const Trainee = () => {
       shadow hover:bg-orange-600 transition"
   >
     <Bell size={16} /> */}
-  {/* </button> */}
+                  {/* </button> */}
 
                 </div>
 
@@ -598,9 +627,9 @@ const Trainee = () => {
                           draft.endDate
                             ? dayjs(draft.endDate).format("YYYY-MM-DD")
                             : draft.joinedDate && draft.duration
-                            ? calculateEndDate(draft.joinedDate, draft.duration)
+                              ? calculateEndDate(draft.joinedDate, draft.duration)
                                 .datepicker
-                            : ""
+                              : ""
                         }
                         onChange={(e) => updateDraft("endDate", e.target.value)}
                         className="px-2 py-1 border rounded-md text-xs"
@@ -700,27 +729,28 @@ const Trainee = () => {
                         )}
                       </Row>
 
-                        <Row label="Fees">
-                          {isEdit ? (
-                            <TextField
-                              size="small"
-                              type="number"
-                              value={calculateFees(t) || draft.feesToPay}
-                              onChange={(e) => updateDraft("feesToPay", e.target.value)}
-                            />
-                          ) : calculateFees(t)}
-                        </Row>
+                      <Row label="Fees">
+                        {isEdit ? (
+                          <TextField
+                            size="small"
+                            type="number"
+                            value={calculateFees(t) || draft.feesToPay}
+                            onChange={(e) => updateDraft("feesToPay", e.target.value)}
+                          />
+                        ) : calculateFees(t)}
+                      </Row>
 
-                        <Row label="Paid">
-                          {isEdit ? (
-                            <TextField
-                              size="small"
-                              type="number"
-                              value={draft.paidFees}
-                              onChange={(e) => updateDraft("paidFees", e.target.value)}
-                            />
-                          ) : t.paidFees || 0}
-                        </Row>
+                      <Row label="Paid">
+                        {isEdit ? (
+                          <TextField
+                          disabled
+                            size="small"
+                            type="number"
+                            value={draft.paidFees}
+                            onChange={(e) => updateDraft("paidFees", e.target.value)}
+                          />
+                        ) : t.paidFees || 0}
+                      </Row>
 
                       <Row label="Admission Status">
                         {isEdit ? (
@@ -993,6 +1023,7 @@ const Trainee = () => {
                         setGenerateType("Receipt");
                         setSelectedTrainee(t);
                         setReceipt({
+                          t: t,
                           name: t.name,
                           Amount: t.amount,
                           type: t.type,
@@ -1027,7 +1058,7 @@ const Trainee = () => {
                           endDate:
                             t.joinedDate && t.duration
                               ? calculateEndDate(t.joinedDate, t.duration)
-                                  .datepicker
+                                .datepicker
                               : "",
                           name: t.name,
                           duration: t.duration,
@@ -1105,7 +1136,7 @@ const Trainee = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleReceiptSubmit();
+              handleReceiptSubmit(receipt.t);
             }}
             className="space-y-4"
           >
@@ -1120,11 +1151,10 @@ const Trainee = () => {
                   value={receipt.name}
                   onChange={(e) => handleReceiptChange("name", e.target.value)}
                   className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.name
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+              ${errors.name
+                      ? "border-red-400 animate-shake"
+                      : "border-slate-300"
+                    }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                 />
                 {errors.name && (
@@ -1144,11 +1174,10 @@ const Trainee = () => {
                     handleReceiptChange("amount", e.target.value)
                   }
                   className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.amount
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+              ${errors.amount
+                      ? "border-red-400 animate-shake"
+                      : "border-slate-300"
+                    }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                 />
                 {errors.amount && (
@@ -1165,11 +1194,10 @@ const Trainee = () => {
                   value={receipt.type}
                   onChange={(e) => handleReceiptChange("type", e.target.value)}
                   className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.type
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+              ${errors.type
+                      ? "border-red-400 animate-shake"
+                      : "border-slate-300"
+                    }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                 >
                   <option value="">Select Type</option>
@@ -1234,11 +1262,10 @@ const Trainee = () => {
                       handleChangecertificate("joinedDate", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.joinedDate
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+              ${errors.joinedDate
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.joinedDate && (
@@ -1257,11 +1284,10 @@ const Trainee = () => {
                       handleChangecertificate("endDate", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.endDate
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+              ${errors.endDate
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.endDate && (
@@ -1280,11 +1306,10 @@ const Trainee = () => {
                       handleChangecertificate("name", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.name
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+              ${errors.name
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.name && (
@@ -1332,11 +1357,10 @@ const Trainee = () => {
                       handleChangecertificate("batch", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-                          ${
-                            errors.technology
-                              ? "border-red-400"
-                              : "border-slate-300"
-                          }
+                          ${errors.technology
+                        ? "border-red-400"
+                        : "border-slate-300"
+                      }
                           bg-white text-slate-800
                           focus:outline-none focus:ring-2 focus:ring-primary/40 transition`}
                   >
@@ -1362,11 +1386,10 @@ const Trainee = () => {
                       handleChangecertificate("manager", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.manager
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+              ${errors.manager
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.manager && (
@@ -1438,11 +1461,10 @@ const Trainee = () => {
                     value={offerForm.joinedAt || ""}
                     onChange={(e) => handleChange("joinedAt", e.target.value)}
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.joinedAt
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+              ${errors.joinedAt
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.joinedAt && (
@@ -1459,11 +1481,10 @@ const Trainee = () => {
                     value={offerForm.name || ""}
                     onChange={(e) => handleChange("name", e.target.value)}
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.name
-                  ? "border-red-400 animate-shake"
-                  : "border-slate-300"
-              }
+              ${errors.name
+                        ? "border-red-400 animate-shake"
+                        : "border-slate-300"
+                      }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.name && (
@@ -1572,9 +1593,8 @@ const Trainee = () => {
                     handleChange("signerDesignation", e.target.value)
                   }
                   className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${
-                errors.signerDesignation ? "border-red-400" : "border-slate-300"
-              }
+              ${errors.signerDesignation ? "border-red-400" : "border-slate-300"
+                    }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                 />
                 {errors.signerDesignation && (
