@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Select,
-  MenuItem,
-  TextField,
-  Button,
-  IconButton,
-} from "@mui/material";
+import { Select, MenuItem, TextField, Button, IconButton } from "@mui/material";
 
-import { ArrowDown, ArrowDown01, ArrowUp, Award, CalendarDays, File, FileTextIcon, PenIcon, Save, Trash2Icon, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowDown01,
+  ArrowUp,
+  Award,
+  Bell,
+  CalendarDays,
+  File,
+  FileTextIcon,
+  PenIcon,
+  Receipt,
+  Save,
+  Trash2Icon,
+  X,
+} from "lucide-react";
 import { ApiService } from "../../Services/ApiService";
 import BlockingLoader from "../../components/BlockingLoader";
 import Modal from "../../components/Modal";
@@ -27,7 +35,9 @@ const Trainee = () => {
   const [draft, setDraft] = useState({});
   const [loading, setLoading] = useState(false);
   const [openGenerateModal, setOpenGenerateModal] = useState(false);
-  const [generateType, setGenerateType] = useState("certificate" || "offer"); // "certificate" | "offer"
+  const [generateType, setGenerateType] = useState(
+    "certificate" || "offer" || "Receipt"
+  ); // "certificate" | "offer"
   const [selectedTrainee, setSelectedTrainee] = useState(null);
   const [offerForm, setOfferForm] = useState({
     joinedAt: "",
@@ -48,7 +58,12 @@ const Trainee = () => {
     name: "",
     duration: "",
     batch: [],
-    manager: ""
+    manager: "",
+  });
+  const [receipt, setReceipt] = useState({
+    name: "",
+    amount: "",
+    type: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -127,10 +142,7 @@ const Trainee = () => {
   const saveTrainee = async (userId) => {
     setLoading(true);
     try {
-      await ApiService.put(
-        `/api/trainees/update/${userId}`,
-        draft
-      );
+      await ApiService.put(`/api/trainees/update/${userId}`, draft);
       toast.success("Trainee Updated Successfully!", {
         icon: <ToastLogo />,
         style: {
@@ -153,7 +165,6 @@ const Trainee = () => {
       setLoading(false);
     }
   };
-
 
   /* ---------- DELETE ---------- */
   const deleteTrainee = async (userId) => {
@@ -257,8 +268,7 @@ const Trainee = () => {
       });
       setOpenGenerateModal(false);
       setErrors({});
-    }
-    catch (error) {
+    } catch (error) {
       toast.error("Offer letter generation failed", {
         icon: <ToastLogo />,
         style: {
@@ -272,6 +282,10 @@ const Trainee = () => {
   };
   const handleChangecertificate = (key, value) => {
     setCertificate((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => ({ ...prev, [key]: "" }));
+  };
+  const handleReceiptChange = (key, value) => {
+    setReceipt((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
@@ -300,6 +314,19 @@ const Trainee = () => {
     if (!certificate.manager) {
       errors.manager = "Manager is required";
     }
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateReceipt = () => {
+    const errors = {};
+
+    if (!receipt.name.trim()) errors.name = "Name is required";
+
+    if (!receipt.amount || receipt.amount <= 0)
+      errors.amount = "Valid amount is required";
+
+    if (!receipt.type) errors.type = "Payment type is required";
 
     setErrors(errors);
     return Object.keys(errors).length === 0;
@@ -354,6 +381,55 @@ const Trainee = () => {
       setLoading(false);
     }
   };
+  const handleReceiptSubmit = async () => {
+    if (!validateReceipt()) return;
+    try {
+        setLoading(true);
+
+      const buffer = await ApiService.post(
+        "/api/generateOfferLetter/receipt_generation",
+        receipt,
+        {
+          responseType: "blob",
+        }
+      );
+
+      const pdfBlob = new Blob([buffer], {
+        type: "application/pdf",
+      });
+
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+
+      link.href = pdfUrl;
+      link.download = `${offerForm.name.trim()}_receipt_generation.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(pdfUrl);
+      toast.success("Certificate generation Successfully!", {
+        icon: <ToastLogo />,
+        style: {
+          color: "#16a34a",
+        },
+        autoClose: 2000,
+      });
+      setOpenGenerateModal(false);
+      setReceipt({
+        name: "",
+        amount: "",
+        type: "",
+      });
+      console.log("reicep",)
+      setErrors({});
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate receipt");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const calculateFees = (t) => {
 
@@ -370,7 +446,6 @@ const Trainee = () => {
     if (!durationObj) return 0;
     return Number(batch.prices[durationObj.value]) || 0;
   };
-
 
   return (
     <>
@@ -393,31 +468,53 @@ const Trainee = () => {
                 className="rounded-2xl overflow-hidden  shadow bg-white flex flex-col"
               >
                 {/* Header */}
-                <div className="bg-orange-50 h-36 flex items-center justify-center">
-                  <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
+                <div className="bg-orange-50 h-20 flex items-center justify-center">
+                  <div className="w-15 h-15 rounded-2xl bg-orange-100 flex items-center justify-center">
                     <span className="text-orange-600 font-semibold text-lg">
                       {t.name
                         ?.split(" ")
-                        .map(w => w[0])
+                        .map((w) => w[0])
                         .join("")
                         .toUpperCase()}
                     </span>
                   </div>
-                </div>
+                   {/* Notification Icon – Right Side
+  <button
+    onClick={() => handleNotify(t)}
+    className="absolute right-4 top-1/2 -translate-y-1/2
+      h-9 w-9 rounded-full bg-orange-500 text-white
+      flex items-center justify-center
+      shadow hover:bg-orange-600 transition"
+  >
+    <Bell size={16} /> */}
+  {/* </button> */}
 
+                </div>
 
                 {/* Body */}
                 <div className="p-4 space-y-2 text-sm flex-1">
                   <Row label="Name">
                     {isEdit ? (
-                      <TextField size="small" value={draft.name} onChange={(e) => updateDraft("name", e.target.value)} />
-                    ) : t.name}
+                      <TextField
+                        size="small"
+                        value={draft.name}
+                        onChange={(e) => updateDraft("name", e.target.value)}
+                      />
+                    ) : (
+                      t.name
+                    )}
                   </Row>
 
                   <Row label="Email">
                     {isEdit ? (
-                      <TextField size="small" value={draft.email} onChange={(e) => updateDraft("email", e.target.value)} />
-                    ) : t.email}
+                      <TextField
+                        size="small"
+                        value={draft.email}
+                        onChange={(e) => updateDraft("email", e.target.value)}
+                      />
+                    ) : (
+                      t.email
+                    )}
                   </Row>
 
                   <Row label="Batch">
@@ -426,38 +523,71 @@ const Trainee = () => {
                         size="small"
                         value={draft.batches?.[0] ?? ""}
                         displayEmpty
-                        onChange={(e) => updateDraft("batches", e.target.value ? [e.target.value] : [])}
+                        onChange={(e) =>
+                          updateDraft(
+                            "batches",
+                            e.target.value ? [e.target.value] : []
+                          )
+                        }
                         renderValue={(s) => {
                           if (!s) return "Select Batch";
-                          return batches.find(b => b.id === s)?.technology || "-";
+                          return (
+                            batches.find((b) => b.id === s)?.technology || "-"
+                          );
                         }}
                       >
-                        {batches.map(b => (
-                          <MenuItem key={b.id} value={b.id}>{b.technology}</MenuItem>
+                        {batches.map((b) => (
+                          <MenuItem key={b.id} value={b.id}>
+                            {b.technology}
+                          </MenuItem>
                         ))}
                       </Select>
-                    ) : (t.batches?.map(b => b.name).join(", ") || "-")}
+                    ) : (
+                      t.batches?.map((b) => b.name).join(", ") || "-"
+                    )}
                   </Row>
 
                   <Row label="Training Status">
                     {isEdit ? (
-                      <Select size="small" value={draft.trainingStatus} onChange={(e) => updateDraft("trainingStatus", e.target.value)}>
-                        {ConstantService.TrainingStatus.map(s => (
-                          <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                      <Select
+                        size="small"
+                        value={draft.trainingStatus}
+                        onChange={(e) =>
+                          updateDraft("trainingStatus", e.target.value)
+                        }
+                      >
+                        {ConstantService.TrainingStatus.map((s) => (
+                          <MenuItem key={s.value} value={s.value}>
+                            {s.label}
+                          </MenuItem>
                         ))}
                       </Select>
-                    ) : (ConstantService.TrainingStatus.find(s => s.value === t.trainingStatus)?.label || "-")}
+                    ) : (
+                      ConstantService.TrainingStatus.find(
+                        (s) => s.value === t.trainingStatus
+                      )?.label || "-"
+                    )}
                   </Row>
 
                   <Row label="Joined Date">
                     {isEdit ? (
                       <input
                         type="date"
-                        value={draft.joinedDate ? dayjs(draft.joinedDate).format("YYYY-MM-DD") : ""}
-                        onChange={(e) => updateDraft("joinedDate", e.target.value)}
+                        value={
+                          draft.joinedDate
+                            ? dayjs(draft.joinedDate).format("YYYY-MM-DD")
+                            : ""
+                        }
+                        onChange={(e) =>
+                          updateDraft("joinedDate", e.target.value)
+                        }
                         className="px-2 py-1 border rounded-md text-xs"
                       />
-                    ) : (t.joinedDate ? dayjs(t.joinedDate).format("DD-MM-YYYY") : "-")}
+                    ) : t.joinedDate ? (
+                      dayjs(t.joinedDate).format("DD-MM-YYYY")
+                    ) : (
+                      "-"
+                    )}
                   </Row>
 
                   <Row label="End Date">
@@ -468,23 +598,26 @@ const Trainee = () => {
                           draft.endDate
                             ? dayjs(draft.endDate).format("YYYY-MM-DD")
                             : draft.joinedDate && draft.duration
-                              ? calculateEndDate(draft.joinedDate, draft.duration).datepicker
-                              : ""
+                            ? calculateEndDate(draft.joinedDate, draft.duration)
+                                .datepicker
+                            : ""
                         }
                         onChange={(e) => updateDraft("endDate", e.target.value)}
                         className="px-2 py-1 border rounded-md text-xs"
                       />
+                    ) : t.endDate ? (
+                      dayjs(t.endDate).format("DD-MM-YYYY")
+                    ) : t.joinedDate && t.duration ? (
+                      calculateEndDate(t.joinedDate, t.duration).displaydate
                     ) : (
-                      t.endDate
-                        ? dayjs(t.endDate).format("DD-MM-YYYY")
-                        : t.joinedDate && t.duration
-                          ? calculateEndDate(t.joinedDate, t.duration).displaydate
-                          : "-"
+                      "-"
                     )}
                   </Row>
 
                   <button
-                    onClick={() => setOpenId(openId === t.user_id ? null : t.user_id)}
+                    onClick={() =>
+                      setOpenId(openId === t.user_id ? null : t.user_id)
+                    }
                     className="cursor-pointer text-orange-600 text-xs font-medium mt-1 flex items-center gap-1"
                   >
                     {openId === t.user_id ? (
@@ -500,36 +633,72 @@ const Trainee = () => {
                     )}
                   </button>
 
-                  {openId === t.user_id &&
-                    (
-                      <>
-                        <Row label="Education">
-                          {isEdit ? (
-                            <TextField size="small" value={draft.education} onChange={(e) => updateDraft("education", e.target.value)} />
-                          ) : (t.education || "-")}
-                        </Row>
+                  {openId === t.user_id && (
+                    <>
+                      <Row label="Education">
+                        {isEdit ? (
+                          <TextField
+                            size="small"
+                            value={draft.education}
+                            onChange={(e) =>
+                              updateDraft("education", e.target.value)
+                            }
+                          />
+                        ) : (
+                          t.education || "-"
+                        )}
+                      </Row>
 
-                        <Row label="College">
-                          {isEdit ? (
-                            <TextField size="small" value={draft.college} onChange={(e) => updateDraft("college", e.target.value)} />
-                          ) : (t.college || "-")}
-                        </Row>
+                      <Row label="College">
+                        {isEdit ? (
+                          <TextField
+                            size="small"
+                            value={draft.college}
+                            onChange={(e) =>
+                              updateDraft("college", e.target.value)
+                            }
+                          />
+                        ) : (
+                          t.college || "-"
+                        )}
+                      </Row>
 
-                        <Row label="Phone">
-                          {isEdit ? (
-                            <TextField size="small" value={draft.phone} onChange={(e) => updateDraft("phone", e.target.value)} />
-                          ) : (t.phone || "-")}
-                        </Row>
+                      <Row label="Phone">
+                        {isEdit ? (
+                          <TextField
+                            size="small"
+                            value={draft.phone}
+                            onChange={(e) =>
+                              updateDraft("phone", e.target.value)
+                            }
+                          />
+                        ) : (
+                          t.phone || "-"
+                        )}
+                      </Row>
 
-                        <Row label="Branch">
-                          {isEdit ? (
-                            <Select size="small" value={draft.branch ?? ""} displayEmpty onChange={(e) => updateDraft("branch", e.target.value)}>
-                              {ConstantService.Branch.map(b => (
-                                <MenuItem key={b.value} value={b.value}>{b.label}</MenuItem>
-                              ))}
-                            </Select>
-                          ) : (ConstantService.Branch.find(b => b.value === t.branch)?.label || "-")}
-                        </Row>
+                      <Row label="Branch">
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.branch ?? ""}
+                            displayEmpty
+                            onChange={(e) =>
+                              updateDraft("branch", e.target.value)
+                            }
+                          >
+                            {ConstantService.Branch.map((b) => (
+                              <MenuItem key={b.value} value={b.value}>
+                                {b.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          ConstantService.Branch.find(
+                            (b) => b.value === t.branch
+                          )?.label || "-"
+                        )}
+                      </Row>
 
                         <Row label="Fees">
                           {isEdit ? (
@@ -547,99 +716,191 @@ const Trainee = () => {
                             <TextField
                               size="small"
                               type="number"
-                              value={calculateFees(t) || draft.paidFees}
-                              onChange={(e) => updateDraft("feesToPay", e.target.value)}
+                              value={draft.paidFees}
+                              onChange={(e) => updateDraft("paidFees", e.target.value)}
                             />
                           ) : t.paidFees || 0}
                         </Row>
 
-                        <Row label="Admission Status">
-                          {isEdit ? (
-                            <Select size="small" value={draft.admissionStatus} onChange={(e) => updateDraft("admissionStatus", e.target.value)}>
-                              {ConstantService.AdmissionStatus.map(s => (
-                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                              ))}
-                            </Select>
-                          ) : (ConstantService.AdmissionStatus.find(s => s.value === t.admissionStatus)?.label || "-")}
-                        </Row>
-
-                        <Row label="Duration">
-                          {isEdit ? (
-                            <Select size="small" value={draft.duration ?? ""} displayEmpty onChange={(e) => updateDraft("duration", e.target.value)}>
-                              {ConstantService.Duration.map(d => (
-                                <MenuItem key={d.value} value={d.value}>{d.label}</MenuItem>
-                              ))}
-                            </Select>
-                          ) : (ConstantService.Duration.find(d => d.value === t.duration)?.label || "-")}
-                        </Row>
-
-                        <Row label="Certificate Issued">
-                          {isEdit ? (
-                            <Select size="small" value={draft.certificateIssued} onChange={(e) => updateDraft("certificateIssued", e.target.value)}>
-                              {ConstantService.YesNo.map(s => (
-                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                              ))}
-                            </Select>
-                          ) : (ConstantService.YesNo.find(s => s.value === t.certificateIssued)?.label || "No")}
-                        </Row>
-
-                        <Row label="Notes">
-                          <IconButton
+                      <Row label="Admission Status">
+                        {isEdit ? (
+                          <Select
                             size="small"
-                            onClick={() => navigate(`/admin/notes/${t.user_id}`)}
+                            value={draft.admissionStatus}
+                            onChange={(e) =>
+                              updateDraft("admissionStatus", e.target.value)
+                            }
                           >
-                            <CalendarDays size={16} className="text-primary" />
-                          </IconButton>
-                        </Row>
+                            {ConstantService.AdmissionStatus.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          ConstantService.AdmissionStatus.find(
+                            (s) => s.value === t.admissionStatus
+                          )?.label || "-"
+                        )}
+                      </Row>
 
-                        <Row label="Shift">
-                          {isEdit ? (
-                            <Select size="small" value={draft.shift ?? ""} onChange={(e) => updateDraft("shift", e.target.value)}>
-                              {ConstantService.Shift.map(s => (
-                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                              ))}
-                            </Select>
-                          ) : (ConstantService.Shift.find(s => s.value === t.shift)?.label || "-")}
-                        </Row>
+                      <Row label="Duration">
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.duration ?? ""}
+                            displayEmpty
+                            onChange={(e) =>
+                              updateDraft("duration", e.target.value)
+                            }
+                          >
+                            {ConstantService.Duration.map((d) => (
+                              <MenuItem key={d.value} value={d.value}>
+                                {d.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          ConstantService.Duration.find(
+                            (d) => d.value === t.duration
+                          )?.label || "-"
+                        )}
+                      </Row>
 
-                        <Row label="Want To Board">
-                          {isEdit ? (
-                            <Select disabled={draft.trainingStatus != "completed"} size="small" value={draft.wantToBoard} onChange={(e) => updateDraft("wantToBoard", e.target.value)}>
-                              {ConstantService.YesNo.map(s => (
-                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                              ))}
-                            </Select>
-                          ) : (ConstantService.YesNo.find(s => s.value === t.wantToBoard)?.label || "-")}
-                        </Row>
+                      <Row label="Certificate Issued">
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.certificateIssued}
+                            onChange={(e) =>
+                              updateDraft("certificateIssued", e.target.value)
+                            }
+                          >
+                            {ConstantService.YesNo.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          ConstantService.YesNo.find(
+                            (s) => s.value === t.certificateIssued
+                          )?.label || "No"
+                        )}
+                      </Row>
 
-                        <Row label="NDA Signed">
-                          {isEdit ? (
-                            <Select size="small" value={draft.ndaSigned} onChange={(e) => updateDraft("ndaSigned", e.target.value)}>
-                              {ConstantService.YesNo.map(s => (
-                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                              ))}
-                            </Select>
-                          ) : (ConstantService.YesNo.find(s => s.value === t.ndaSigned)?.label || "No")}
-                        </Row>
+                      <Row label="Notes">
+                        <IconButton
+                          size="small"
+                          onClick={() => navigate(`/admin/notes/${t.user_id}`)}
+                        >
+                          <CalendarDays size={16} className="text-primary" />
+                        </IconButton>
+                      </Row>
 
-                        <Row label="Aadhar Submitted">
-                          {isEdit ? (
-                            <Select size="small" value={draft.adharSubmitted} onChange={(e) => updateDraft("adharSubmitted", e.target.value)}>
-                              {ConstantService.YesNo.map(s => (
-                                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                              ))}
-                            </Select>
-                          ) : (ConstantService.YesNo.find(s => s.value === t.adharSubmitted)?.label || "No")}
-                        </Row>
+                      <Row label="Shift">
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.shift ?? ""}
+                            onChange={(e) =>
+                              updateDraft("shift", e.target.value)
+                            }
+                          >
+                            {ConstantService.Shift.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          ConstantService.Shift.find((s) => s.value === t.shift)
+                            ?.label || "-"
+                        )}
+                      </Row>
 
-                        <Row label="Remarks">
-                          {isEdit ? (
-                            <TextField size="small" value={draft.remarks2 || ""} onChange={(e) => updateDraft("remarks2", e.target.value)} />
-                          ) : (t.remarks2 || "-")}
-                        </Row>
-                      </>
-                    )}
+                      <Row label="Want To Board">
+                        {isEdit ? (
+                          <Select
+                            disabled={draft.trainingStatus != "completed"}
+                            size="small"
+                            value={draft.wantToBoard}
+                            onChange={(e) =>
+                              updateDraft("wantToBoard", e.target.value)
+                            }
+                          >
+                            {ConstantService.YesNo.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          ConstantService.YesNo.find(
+                            (s) => s.value === t.wantToBoard
+                          )?.label || "-"
+                        )}
+                      </Row>
 
+                      <Row label="NDA Signed">
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.ndaSigned}
+                            onChange={(e) =>
+                              updateDraft("ndaSigned", e.target.value)
+                            }
+                          >
+                            {ConstantService.YesNo.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          ConstantService.YesNo.find(
+                            (s) => s.value === t.ndaSigned
+                          )?.label || "No"
+                        )}
+                      </Row>
+
+                      <Row label="Aadhar Submitted">
+                        {isEdit ? (
+                          <Select
+                            size="small"
+                            value={draft.adharSubmitted}
+                            onChange={(e) =>
+                              updateDraft("adharSubmitted", e.target.value)
+                            }
+                          >
+                            {ConstantService.YesNo.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                {s.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        ) : (
+                          ConstantService.YesNo.find(
+                            (s) => s.value === t.adharSubmitted
+                          )?.label || "No"
+                        )}
+                      </Row>
+
+                      <Row label="Remarks">
+                        {isEdit ? (
+                          <TextField
+                            size="small"
+                            value={draft.remarks2 || ""}
+                            onChange={(e) =>
+                              updateDraft("remarks2", e.target.value)
+                            }
+                          />
+                        ) : (
+                          t.remarks2 || "-"
+                        )}
+                      </Row>
+                    </>
+                  )}
                 </div>
                 {/* Footer */}
                 <div className="border-t px-4 py-3 flex justify-between items-center">
@@ -726,6 +987,35 @@ const Trainee = () => {
                   </div>
 
                   <div className="flex gap-2">
+                    {/* Receape */}
+                    <button
+                      onClick={() => {
+                        setGenerateType("Receipt");
+                        setSelectedTrainee(t);
+                        setReceipt({
+                          name: t.name,
+                          Amount: t.amount,
+                          type: t.type,
+                        });
+                        setOpenGenerateModal(true);
+                      }}
+                      className="
+      group flex items-center gap-2
+      w-9 hover:w-32
+      rounded-full bg-primary text-white
+      px-2 py-2
+      overflow-hidden
+      transition-all duration-300 ease-in-out
+      disabled:opacity-50 disabled:cursor-not-allowed
+      cursor-pointer
+    "
+                    >
+                      <Receipt size={18} className="shrink-0" />
+                      <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        Receipt
+                      </span>
+                    </button>
+
                     {/* Certificate */}
                     <button
                       disabled={t.trainingStatus !== "completed"}
@@ -736,7 +1026,8 @@ const Trainee = () => {
                           joinedDate: t.joinedDate,
                           endDate:
                             t.joinedDate && t.duration
-                              ? calculateEndDate(t.joinedDate, t.duration).datepicker
+                              ? calculateEndDate(t.joinedDate, t.duration)
+                                  .datepicker
                               : "",
                           name: t.name,
                           duration: t.duration,
@@ -798,13 +1089,123 @@ const Trainee = () => {
                       </span>
                     </button>
                   </div>
-
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+      {generateType === "Receipt" && (
+        <Modal
+          css={"max-w-xl w-full"}
+          open={openGenerateModal}
+          onClose={() => setOpenGenerateModal(false)}
+          title="Generate Receipt"
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleReceiptSubmit();
+            }}
+            className="space-y-4"
+          >
+            {/* FORM GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Name */}
+              <div className="md:col-span-2">
+                <label className="text-xs font-medium text-slate-600">
+                  Name
+                </label>
+                <input
+                  value={receipt.name}
+                  onChange={(e) => handleReceiptChange("name", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${
+                errors.name
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
+                />
+                {errors.name && (
+                  <p className="text-xs text-red-500">{errors.name}</p>
+                )}
+              </div>
+
+              {/* Amount */}
+              <div className="md:col-span-2">
+                <label className="text-xs font-medium text-slate-600">
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  value={receipt.amount}
+                  onChange={(e) =>
+                    handleReceiptChange("amount", e.target.value)
+                  }
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${
+                errors.amount
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
+                />
+                {errors.amount && (
+                  <p className="text-xs text-red-500">{errors.amount}</p>
+                )}
+              </div>
+
+              {/* Payment Type – FULL WIDTH */}
+              <div className="md:col-span-2">
+                <label className="text-xs font-medium text-slate-600">
+                  Payment Type
+                </label>
+                <select
+                  value={receipt.type}
+                  onChange={(e) => handleReceiptChange("type", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+              ${
+                errors.type
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
+              bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
+                >
+                  <option value="">Select Type</option>
+                  {ConstantService.PaymentType.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.type && (
+                  <p className="text-xs text-red-500">{errors.type}</p>
+                )}
+              </div>
+            </div>
+
+            {/* ACTIONS */}
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setOpenGenerateModal(false)}
+                className="px-4 py-2 text-sm rounded-lg border text-slate-700"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="px-5 py-2 text-sm font-semibold rounded-lg
+        bg-primary text-white shadow"
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
       {generateType === "certificate" && (
         <Modal
           css={"w-1/2"}
@@ -833,10 +1234,11 @@ const Trainee = () => {
                       handleChangecertificate("joinedDate", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.joinedDate
-                        ? "border-red-400 animate-shake"
-                        : "border-slate-300"
-                      }
+              ${
+                errors.joinedDate
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.joinedDate && (
@@ -855,10 +1257,11 @@ const Trainee = () => {
                       handleChangecertificate("endDate", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.endDate
-                        ? "border-red-400 animate-shake"
-                        : "border-slate-300"
-                      }
+              ${
+                errors.endDate
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.endDate && (
@@ -877,10 +1280,11 @@ const Trainee = () => {
                       handleChangecertificate("name", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.name
-                        ? "border-red-400 animate-shake"
-                        : "border-slate-300"
-                      }
+              ${
+                errors.name
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.name && (
@@ -928,10 +1332,11 @@ const Trainee = () => {
                       handleChangecertificate("batch", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-                          ${errors.technology
-                        ? "border-red-400"
-                        : "border-slate-300"
-                      }
+                          ${
+                            errors.technology
+                              ? "border-red-400"
+                              : "border-slate-300"
+                          }
                           bg-white text-slate-800
                           focus:outline-none focus:ring-2 focus:ring-primary/40 transition`}
                   >
@@ -957,17 +1362,17 @@ const Trainee = () => {
                       handleChangecertificate("manager", e.target.value)
                     }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.manager
-                        ? "border-red-400 animate-shake"
-                        : "border-slate-300"
-                      }
+              ${
+                errors.manager
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.manager && (
                     <p className="text-xs text-red-500">{errors.manager}</p>
                   )}
                 </div>
-
               </div>
             </div>
 
@@ -1033,10 +1438,11 @@ const Trainee = () => {
                     value={offerForm.joinedAt || ""}
                     onChange={(e) => handleChange("joinedAt", e.target.value)}
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.joinedAt
-                        ? "border-red-400 animate-shake"
-                        : "border-slate-300"
-                      }
+              ${
+                errors.joinedAt
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.joinedAt && (
@@ -1053,10 +1459,11 @@ const Trainee = () => {
                     value={offerForm.name || ""}
                     onChange={(e) => handleChange("name", e.target.value)}
                     className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.name
-                        ? "border-red-400 animate-shake"
-                        : "border-slate-300"
-                      }
+              ${
+                errors.name
+                  ? "border-red-400 animate-shake"
+                  : "border-slate-300"
+              }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.name && (
@@ -1122,13 +1529,17 @@ const Trainee = () => {
                   </label>
                   <input
                     value={offerForm.compensation || ""}
-                    onChange={(e) => handleChange("compensation", e.target.value)}
+                    onChange={(e) =>
+                      handleChange("compensation", e.target.value)
+                    }
                     className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.compensation ? "border-red-400" : "border-slate-300"}
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                   />
                   {errors.compensation && (
-                    <p className="text-xs text-red-500">{errors.compensation}</p>
+                    <p className="text-xs text-red-500">
+                      {errors.compensation}
+                    </p>
                   )}
                 </div>
               </div>
@@ -1161,8 +1572,9 @@ const Trainee = () => {
                     handleChange("signerDesignation", e.target.value)
                   }
                   className={`w-full rounded-xl border px-4 py-3 text-sm
-              ${errors.signerDesignation ? "border-red-400" : "border-slate-300"
-                    }
+              ${
+                errors.signerDesignation ? "border-red-400" : "border-slate-300"
+              }
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
                 />
                 {errors.signerDesignation && (
@@ -1178,7 +1590,9 @@ const Trainee = () => {
                 </label>
                 <input
                   value={offerForm.contactPerson || ""}
-                  onChange={(e) => handleChange("contactPerson", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("contactPerson", e.target.value)
+                  }
                   className={`w-full rounded-xl border px-4 py-3 text-sm
               ${errors.contactPerson ? "border-red-400" : "border-slate-300"}
               bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
@@ -1241,7 +1655,6 @@ const Trainee = () => {
           </form>
         </Modal>
       )}
-
     </>
   );
 };

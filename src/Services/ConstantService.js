@@ -33,6 +33,11 @@ export const ConstantService = {
     { label: "Rejected", value: "rejected" },
   ],
 
+   PaymentType: [
+    { label: "Bank", value: "Bank" },
+    { label: "Cash", value: "Cash" },
+  ],
+
   Technologys: [
     { value: "Frontend Design", label: "Frontend Design" },
     { value: "node", label: "Node.js" },
