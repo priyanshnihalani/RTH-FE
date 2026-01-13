@@ -8,6 +8,13 @@ import ToastLogo from "../../components/ToastLogo";
 const AddBatchModal = ({ open, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     technology: "",
+    prices: {
+      0.5: "",
+      1: "",
+      1.5: "",
+      3: "",
+      6: ""
+    }
   });
 
   const [errors, setErrors] = useState({});
@@ -21,8 +28,23 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
   const validateForm = () => {
     const errors = {};
 
-    if (!formData.technology) {
+    if (!formData.technology?.trim()) {
       errors.technology = "Please provide a technology";
+    }
+
+    const prices = formData.prices || {};
+    const values = Object.values(prices);
+
+    const allEmpty = values.every(v => !v || v.trim() === "");
+
+    if (allEmpty) {
+      errors.price = "Please enter at least one fee";
+    }
+
+    for (const [month, value] of Object.entries(prices)) {
+      if (value === "") {
+        errors[`price_${month}`] = `${month} month fee is required`;
+      }
     }
 
     setErrors(errors);
@@ -96,6 +118,41 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
             {errors.technology && (
               <p className="text-xs text-red-500">{errors.technology}</p>
             )}
+          </div>
+        </div>
+        {/* Batch Fees */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-slate-600">
+            Batch Fees
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            {[0.5, 1, 1.5, 3, 6].map(month => (
+              <div key={month} className="space-y-1">
+                <label className="text-[11px] text-slate-500">
+
+                  {month == 0.5 ? " 15 Days" : month == 1.5 ? "45 Day" : `${month} Month`}{month > 1 ? "s" : ""}
+                </label>
+
+                <input
+                  type="number"
+                  value={formData.prices[month]}
+                  onChange={(e) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      prices: {
+                        ...prev.prices,
+                        [month]: e.target.value
+                      }
+                    }))
+                  }
+                  className={`w-full rounded-xl border px-3 py-2 text-sm
+            ${errors.price ? "border-red-400" : "border-slate-300"}
+            focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                  placeholder="₹"
+                />
+              </div>
+            ))}
           </div>
         </div>
 

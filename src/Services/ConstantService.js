@@ -18,10 +18,10 @@ export const ConstantService = {
   ],
 
   Branch: [
-    {label: "Ahemdabad", value: "AHEMDABAD"},
-    {label: "Junagadh", value: "JUNAGADH"},
+    { label: "Ahemdabad", value: "AHEMDABAD" },
+    { label: "Junagadh", value: "JUNAGADH" },
   ],
-  
+
   YesNo: [
     { label: "Yes", value: true },
     { label: "No", value: false },
@@ -58,6 +58,15 @@ export const ConstantService = {
     { label: "3 months", value: "3 months" },
     { label: "6 months", value: "6 months" },
   ],
+
+  DURATION_MAP: [
+    { value: 0.5, label: "15 Days" },
+    { value: 1, label: "30 Days" },
+    { value: 1.5, label: "45 Days" },
+    { value: 3, label: "3 months" },
+    { value: 6, label: "6 months" },
+  ]
+
 }
 
 export default ConstantService

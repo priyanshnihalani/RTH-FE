@@ -76,7 +76,8 @@ const Trainee = () => {
           t.registration?.certificateIssued ?? t.certificateIssued,
         adharSubmitted: t.registration?.adharSubmitted ?? t.adharSubmitted,
         trainingStatus: t.registration?.trainingStatus ?? t.trainingStatus,
-        remainingFee: t.registration?.remainingFee ?? 0,
+        feesToPay: t.registration?.feesToPay ?? 0,
+        paidFees: t.registration?.paidFees ?? 0,
         wantToBoard: t.registration?.wantToBoard,
       }));
 
@@ -104,7 +105,8 @@ const Trainee = () => {
       college: t.college || "",
       phone: t.phone || "",
       batches: t.batches?.map(b => b.id) || [],
-      remainingFee: t.remainingFee ?? 0,
+      feesToPay: t.feesToPay ?? 0,
+      paidFees: t?.paidFees ?? 0,
       admissionStatus: t.admissionStatus || "pending",
       trainingStatus: t.trainingStatus || "not_started",
       shift: t.shift ?? false,
@@ -353,30 +355,22 @@ const Trainee = () => {
     }
   };
 
-  const tableColumns = [
-    { label: "Name", width: 180 },
-    { label: "Email", width: 180 },
-    { label: "Degree", width: 120 },
-    { label: "College", width: 200 },
-    { label: "Phone", width: 200 },
-    { label: "Batch", width: 200 },
-    { label: "Branch", width: 200 },
-    { label: "Remaining Fees", width: 160 },
-    { label: "Admission", width: 130 },
-    { label: "Training", width: 130 },
-    { label: "Duration", width: 120 },
-    { label: "Certificate", width: 140 },
-    { label: "Shift", width: 100 },
-    { label: "WantToBoard", width: 140 },
-    { label: "JoiningDate", width: 130 },
-    { label: "EndDate", width: 130 },
-    { label: "NDA", width: 90 },
-    { label: "Aadhaar", width: 110 },
-    { label: "Remarks", width: 200 },
-    { label: "Notes", width: 200 },
-    { label: "Actions", width: 140 },
-    { label: "Generate", width: 130 },
-  ];
+  const calculateFees = (t) => {
+
+    const batchId = t?.batches?.[0]?.id;
+    if (!batchId || !t?.duration) return 0;
+
+    const batch = batches.find(b => b.id === batchId);
+    if (!batch || !batch.prices) return 0;
+
+    const durationObj = ConstantService.DURATION_MAP.find(
+      d => d.label === t.duration
+    );
+
+    if (!durationObj) return 0;
+    console.log(Number(batch.prices[durationObj.value]) || 0)
+    return Number(batch.prices[durationObj.value]) || 0;
+  };
 
 
   return (
@@ -392,10 +386,8 @@ const Trainee = () => {
 
         {/* TABLE */}
         <div className="bg-white p-4 rounded-2xl grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
-
           {trainees.map((t) => {
             const isEdit = editingId === t.user_id;
-
             return (
               <div
                 key={t.user_id}
@@ -470,9 +462,26 @@ const Trainee = () => {
                   </Row>
 
                   <Row label="End Date">
-                    {t.joinedDate && t.duration
-                      ? calculateEndDate(t.joinedDate, t.duration).displaydate
-                      : "-"}
+                    {isEdit ? (
+                      <input
+                        type="date"
+                        value={
+                          draft.endDate
+                            ? dayjs(draft.endDate).format("YYYY-MM-DD")
+                            : draft.joinedDate && draft.duration
+                              ? calculateEndDate(draft.joinedDate, draft.duration).datepicker
+                              : ""
+                        }
+                        onChange={(e) => updateDraft("endDate", e.target.value)}
+                        className="px-2 py-1 border rounded-md text-xs"
+                      />
+                    ) : (
+                      t.endDate
+                        ? dayjs(t.endDate).format("DD-MM-YYYY")
+                        : t.joinedDate && t.duration
+                          ? calculateEndDate(t.joinedDate, t.duration).displaydate
+                          : "-"
+                    )}
                   </Row>
 
                   <button
@@ -523,10 +532,26 @@ const Trainee = () => {
                           ) : (ConstantService.Branch.find(b => b.value === t.branch)?.label || "-")}
                         </Row>
 
-                        <Row label="Remaining Fees">
+                        <Row label="Fees">
                           {isEdit ? (
-                            <TextField size="small" type="number" value={draft.remainingFees} onChange={(e) => updateDraft("remainingFees", e.target.value)} />
-                          ) : (t.remainingFees || 0)}
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={calculateFees(t) || draft.feesToPay}
+                              onChange={(e) => updateDraft("feesToPay", e.target.value)}
+                            />
+                          ) : calculateFees(t)}
+                        </Row>
+
+                        <Row label="Paid">
+                          {isEdit ? (
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={calculateFees(t) || draft.paidFees}
+                              onChange={(e) => updateDraft("feesToPay", e.target.value)}
+                            />
+                          ) : t.paidFees || 0}
                         </Row>
 
                         <Row label="Admission Status">

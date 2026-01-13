@@ -9,6 +9,7 @@ import {
 export default function BatchCard({
   id,
   name,
+  prices,
   technology,
   startDate,
   endDate,
@@ -74,6 +75,7 @@ export default function BatchCard({
               id,
               technology,
               trainer,
+              prices
             });
           }}
           className="

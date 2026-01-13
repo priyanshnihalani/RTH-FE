@@ -1,26 +1,39 @@
 import { useState, useEffect } from "react";
 import { ApiService } from "../../Services/ApiService";
 import Modal from "../../components/Modal";
-import ConstantService from "../../Services/ConstantService";
 import { toast } from "react-toastify";
 import ToastLogo from "../../components/ToastLogo";
 
 const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
   const [formData, setFormData] = useState({
     technology: "",
+    prices: {
+      0.5: "",
+      1: "",
+      1.5: "",
+      3: "",
+      6: ""
+    }
   });
 
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-
   useEffect(() => {
     if (batch && open) {
       setFormData({
         technology: batch.technology || "",
+        prices: {
+          0.5: batch?.prices?.[0.5] || "",
+          1: batch?.prices?.[1] || "",
+          1.5: batch?.prices?.[1.5] || "",
+          3: batch?.prices?.[3] || "",
+          6: batch?.prices?.[6] || ""
+        }
       });
       setErrors({});
     }
   }, [batch, open]);
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,8 +43,15 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
   const validateForm = () => {
     const errors = {};
 
-    if (!formData.technology) {
+    if (!formData.technology?.trim()) {
       errors.technology = "Please select a technology";
+    }
+
+    const values = Object.values(formData.prices || {});
+    const allEmpty = values.every(v => !v || v.trim() === "");
+
+    if (allEmpty) {
+      errors.price = "Please enter at least one fee";
     }
 
     setErrors(errors);
@@ -69,7 +89,7 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
 
 
   return (
-    <Modal css={'w-1/4'} open={open} onClose={onClose} title="Edit Batch">
+    <Modal css={'w-1/3'} open={open} onClose={onClose} title="Edit Batch">
       <form
         onSubmit={handleSubmit}
         className="space-y-6 animate-in fade-in zoom-in-95 duration-200"
@@ -100,6 +120,46 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
               <p className="text-xs text-red-500">{errors.technology}</p>
             )}
           </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-slate-600">
+              Batch Fees
+            </label>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[0.5, 1, 1.5, 3, 6].map(month => (
+                <div key={month} className="space-y-1">
+                  <label className="text-[11px] text-slate-500">
+
+                    {month == 0.5 ? " 15 Days" : month == 1.5 ? "45 Day" : `${month} Month`}{month > 1 ? "s" : ""}
+                  </label>
+
+                  <input
+                    type="number"
+                    value={formData.prices[month]}
+                    onChange={(e) =>
+                      setFormData(prev => ({
+                        ...prev,
+                        prices: {
+                          ...prev.prices,
+                          [month]: e.target.value
+                        }
+                      }))
+                    }
+                    className={`w-full rounded-xl border px-3 py-2 text-sm
+            ${errors.price ? "border-red-400" : "border-slate-300"}
+            focus:outline-none focus:ring-2 focus:ring-[#FB8924]/40`}
+                    placeholder="₹"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {errors.price && (
+              <p className="text-xs text-red-500">{errors.price}</p>
+            )}
+          </div>
+
         </div>
 
         {/* -------- ACTIONS -------- */}

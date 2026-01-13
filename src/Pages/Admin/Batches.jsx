@@ -20,7 +20,6 @@ const Batches = () => {
         try {
             setLoading(true)
             const result = await ApiService.get("/api/batch/getallbatchwithdetail")
-            console.log(result)
             setBatches(result)
         }
         catch (err) {
@@ -33,7 +32,7 @@ const Batches = () => {
     useEffect(() => {
         fetchBatches()
     }, [])
-
+    
     return (
 
         <>
@@ -121,7 +120,7 @@ const Batches = () => {
                     ) : (
                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                             {batches.map((batch) => (
-                                <BatchCard key={batch.id} id={batch.id} trainer={batch.Trainers}
+                                <BatchCard key={batch.id} id={batch.id} trainer={batch.Trainers} prices={batch.prices}
                                     technology={batch.technology}
                                     traineeCount={batch.traineeCount} setSelected={setSelected} setIsEditOpen={setOpenEdit} setIsDeleteOpen={setOpenDelete} />
                             ))}

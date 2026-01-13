@@ -43,7 +43,7 @@ const Modal = ({ css, open, onClose, title, children }) => {
               text-gray-500
               hover:bg-gray-100
               hover:text-gray-800
-              transition
+              transition cursor-pointer
             "
           >
             <X size={18} />
