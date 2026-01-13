@@ -11,6 +11,7 @@ const Students = () => {
     const [students, setStudents] = useState([]);
     const { trainerId } = useOutletContext()
     const [search, setSearch] = useState("")
+
     const countTaskStatus = (assignedTasks = []) => {
         return assignedTasks.reduce(
             (acc, task) => {
@@ -36,13 +37,13 @@ const Students = () => {
                 setStudents([])
             }
             setStudents(
-                res?.Trainees.map((item) => {
+                res?.data.Trainees?.map((item) => {
                     const statusCount = countTaskStatus(item.MyTasks);
-
+                    
                     return {
                         ...item,
-                        batch: res.technology,
-                        batchId: res.id,
+                        batch: res?.data?.technology,
+                        batchId: res?.data?.id,
                         taskStats: statusCount,
                     };
                 })
@@ -64,6 +65,7 @@ const Students = () => {
         student.name?.toLowerCase().includes(search.toLowerCase())
     );
 
+    console.log(students)
 
     return (
         <>

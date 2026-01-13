@@ -112,7 +112,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[
                         { label: "Total Batches", value: batches.length, icon: Layers },
                         { label: "Total Trainers", value: trainers.length, icon: UserCheck },
@@ -130,7 +130,7 @@ export default function Dashboard() {
                         >
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <p className="text-sm text-gray-500">{item.label}</p>
+                                    <p className="text-xs lg:text-sm text-gray-500">{item.label}</p>
                                     <p className="text-3xl font-bold text-gray-800 mt-1">
                                         {item.value}
                                     </p>

@@ -23,7 +23,7 @@ export default function Register() {
     };
     const [loading, setLoading] = useState(false)
 
-    
+
     useEffect(() => {
         if (Cookies.get('waitingToken')) {
             navigate('/', { replace: true })
@@ -231,7 +231,7 @@ export default function Register() {
                     {/* RIGHT REGISTER CARD */}
                     <form
                         onSubmit={handleSubmit}
-                        className="w-full max-w-xl  relative mt-8 lg:mt-0"
+                        className="w-full max-w-xl mx-auto relative mt-8 lg:mt-0"
                     >
                         {/* Soft background glow */}
                         <div className="
@@ -247,6 +247,7 @@ export default function Register() {
                             className="
       relative z-20
       rounded-[2rem]
+      my-5
       p-8 md:p-10
       bg-white/50 backdrop-blur-lg
       shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)]
@@ -264,7 +265,7 @@ export default function Register() {
                             </div>
 
                             <div className="space-y-5">
-                                <div className="flex space-x-2">
+                                <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-4 sm:space-y-0">
 
                                     {/* Full Name */}
                                     <div className="space-y-1.5">
@@ -326,7 +327,7 @@ export default function Register() {
                                     </div>
                                 </div>
 
-                                <div className="flex space-x-2">
+                                <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-4 sm:space-y-0">
                                     {/* Phone */}
                                     <div className="space-y-1.5">
                                         <label className="block text-sm font-medium text-slate-700 ml-1">

@@ -5,7 +5,7 @@ const AdminLayout = () => {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64  border-r bg-white">
+      <aside className="lg:w-64 border-r bg-white">
         <Sidebar />
       </aside>
 
