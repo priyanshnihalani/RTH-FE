@@ -466,6 +466,29 @@ const Trainee = () => {
       setLoading(false);
     }
   };
+  const buildNotifications = (t) => {
+  const notifications = [];
+
+  const totalFees = Number(t.feesToPay || 0);
+  const paid = Number(t.paidFees || 0);
+
+  if (totalFees > 0 && paid === 0) {
+    notifications.push("Fees not paid yet");
+  }
+
+  if (totalFees > paid && paid > 0) {
+    notifications.push(
+      `Pending fees: ₹${totalFees - paid}`
+    );
+  }
+
+  return notifications;
+};
+const getNotificationCount = (t) => {
+  return Object.keys(t?.notification || {})?.length;
+};
+
+
 
   const calculateFees = (t) => {
 
@@ -929,7 +952,7 @@ const Trainee = () => {
                   )}
                 </div>
                 {/* Footer */}
-                <div className="w-full border-t px-2 py-3 space-x-2 flex justify-between items-center">
+                <div className="border-t px-2 py-3 space-x-2 flex justify-between items-center">
                   <div className="flex gap-1">
                     {isEdit ? (
                       <>
@@ -1009,42 +1032,68 @@ const Trainee = () => {
                           </span>
                         </button>
                         <div className="relative group">
-                          <button
-                            className="
-      relative
-      flex items-center justify-center
-      w-9 h-9
-      rounded-full bg-primary text-white
-      hover:bg-primary/90
-      transition cursor-pointer
-    "
-                          >
-                            <Bell size={18} />
-                          </button>
+  {/* 🔔 Bell Button */}
+ <button
+  className="
+    relative
+    group
+    flex items-center justify-center
+    w-9 h-9
+    rounded-full
+    bg-primary text-white
+    hover:bg-primary/90
+    transition
+  "
+>
+  {/* 🔔 Bell */}
+  <Bell size={18} />
 
-                          {/* Hover Card */}
-                          <div
-                            className="
-      absolute -top-12 mt-2
-      w-56
-      bg-white rounded-xl shadow-lg border
-      p-3 text-sm text-slate-600
-      opacity-0 invisible
-      group-hover:opacity-100 group-hover:visible
-      pointer-events-none group-hover:pointer-events-auto
-      transition duration-200
-      z-[999]
+  {/* 🔴 Count badge */}
+    <span
+      className="
+        absolute -top-1 -right-1
+        min-w-[18px] h-[18px]
+        bg-red-500 text-white
+        text-[10px] font-bold
+        rounded-full
+        flex items-center justify-center
+        shadow
+      "
+    >
+      {getNotificationCount(t)}
+    </span>
+
+
+  {/* 📌 Hover Tooltip */}
+  <div
+    className="
+      absolute -top-12  mt-3
+      w-64
+      bg-white text-slate-700
+      rounded-xl shadow-lg border
+      opacity-0 scale-95
+      pointer-events-none
+      group-hover:opacity-100
+      group-hover:scale-100
+      group-hover:visible
+      group-hover:pointer-events-auto
+      transition-all duration-200
+      z-50
     "
-                          >
-                            <p className="text-center text-slate-500">
-                              {t?.notification?.feesReminder || t?.notification?.finish || "No Notification Available"}
-                            </p>
-                          </div>
-                        </div>
+  >
+    <div className="px-4 py-2 text-sm font-semibold border-b bg-slate-50">
+     {t?.notification?.feesReminder || t?.notification?.finish || "No Notification Available"}
+    </div>
+
+  
+  </div>
+</button>
+
+</div>
+
                       </>
                     )}
                   </div>
-
 
                   <div className="flex gap-1">
                     {/* Receape */}
