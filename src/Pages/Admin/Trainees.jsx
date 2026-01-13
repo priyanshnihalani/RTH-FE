@@ -387,6 +387,9 @@ const Trainee = () => {
     try {
       setLoading(true);
 
+      const alreadyPaid = Number(t?.paidFees || 0);
+      const currentPay = Number(receipt?.amount || 0);
+
       const data = {
         name: t.name || "",
         education: t.education || "",
@@ -394,8 +397,8 @@ const Trainee = () => {
         college: t.college || "",
         phone: t.phone || "",
         batches: t.batches?.map(b => b.id) || [],
-        feesToPay: t.feesToPay ?? 0,
-        paidFees: parseInt(t?.paidFees) + parseInt(receipt?.amount) ?? 0,
+        feesToPay: calculateFees(t) ?? 0,
+        paidFees: alreadyPaid + currentPay,
         admissionStatus: t.admissionStatus || "pending",
         trainingStatus: t.trainingStatus || "not_started",
         shift: t.shift ?? false,
@@ -409,8 +412,10 @@ const Trainee = () => {
         remarks2: t.remarks2 || "",
       }
 
-      if (receipt.amount > t.paidFees || data.paidFees > data.feesToPay) {
-        return toast.error("Receipt Amount Should Not Exceed Paid Fees");
+      const totalFees = Number(data.feesToPay || 0);
+
+      if (alreadyPaid + currentPay > totalFees) {
+        return toast.error("Receipt Amount Should Not Exceed Total Fees");
       }
 
       const buffer = await ApiService.post(
@@ -444,6 +449,8 @@ const Trainee = () => {
         },
         autoClose: 2000,
       });
+      fetchTrainees()
+      fetchBatches()
       setOpenGenerateModal(false);
       setReceipt({
         t: "",
@@ -743,7 +750,7 @@ const Trainee = () => {
                       <Row label="Paid">
                         {isEdit ? (
                           <TextField
-                          disabled
+                            disabled
                             size="small"
                             type="number"
                             value={draft.paidFees}
