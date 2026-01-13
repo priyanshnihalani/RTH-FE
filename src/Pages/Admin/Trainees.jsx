@@ -1019,6 +1019,22 @@ const Trainee = () => {
                             Delete
                           </span>
                         </button>
+                        <div className="relative group">
+  {/* 🔔 Bell Button */}
+  <button
+    className="
+      relative
+      flex items-center justify-center
+      w-9 h-9
+      rounded-full bg-primary text-white
+      hover:bg-primary/90
+      transition
+    "
+  >
+    <Bell size={18} />
+  </button> 
+</div>
+
                       </>
                     )}
                   </div>
