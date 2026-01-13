@@ -514,17 +514,6 @@ const Trainee = () => {
                         .toUpperCase()}
                     </span>
                   </div>
-                  {/* Notification Icon – Right Side
-  <button
-    onClick={() => handleNotify(t)}
-    className="absolute right-4 top-1/2 -translate-y-1/2
-      h-9 w-9 rounded-full bg-orange-500 text-white
-      flex items-center justify-center
-      shadow hover:bg-orange-600 transition"
-  >
-    <Bell size={16} /> */}
-                  {/* </button> */}
-
                 </div>
 
                 {/* Body */}
@@ -940,8 +929,8 @@ const Trainee = () => {
                   )}
                 </div>
                 {/* Footer */}
-                <div className="border-t px-4 py-3 flex justify-between items-center">
-                  <div className="flex gap-3">
+                <div className="w-full border-t px-2 py-3 space-x-2 flex justify-between items-center">
+                  <div className="flex gap-1">
                     {isEdit ? (
                       <>
                         {/* Save */}
@@ -1020,26 +1009,44 @@ const Trainee = () => {
                           </span>
                         </button>
                         <div className="relative group">
-  {/* 🔔 Bell Button */}
-  <button
-    className="
+                          <button
+                            className="
       relative
       flex items-center justify-center
       w-9 h-9
       rounded-full bg-primary text-white
       hover:bg-primary/90
-      transition
+      transition cursor-pointer
     "
-  >
-    <Bell size={18} />
-  </button> 
-</div>
+                          >
+                            <Bell size={18} />
+                          </button>
 
+                          {/* Hover Card */}
+                          <div
+                            className="
+      absolute -top-12 mt-2
+      w-56
+      bg-white rounded-xl shadow-lg border
+      p-3 text-sm text-slate-600
+      opacity-0 invisible
+      group-hover:opacity-100 group-hover:visible
+      pointer-events-none group-hover:pointer-events-auto
+      transition duration-200
+      z-[999]
+    "
+                          >
+                            <p className="text-center text-slate-500">
+                              {t?.notification?.feesReminder || t?.notification?.finish || "No Notification Available"}
+                            </p>
+                          </div>
+                        </div>
                       </>
                     )}
                   </div>
 
-                  <div className="flex gap-2">
+
+                  <div className="flex gap-1">
                     {/* Receape */}
                     <button
                       onClick={() => {

@@ -41,7 +41,7 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 space-y-6">
         {/* Main */}
-        <div className="space-y-2 border-b pb-2 lg:pt-0 lg:border-0">
+        <div className="space-y-2 border-b border-gray-400 pb-2 lg:pt-0 lg:border-0">
           {mainMenu.map(item => {
             const Icon = item.icon;
             return (

@@ -65,7 +65,6 @@ const Students = () => {
         student.name?.toLowerCase().includes(search.toLowerCase())
     );
 
-    console.log(students)
 
     return (
         <>
