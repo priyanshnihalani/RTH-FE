@@ -434,7 +434,7 @@ const Trainee = () => {
       const link = document.createElement("a");
 
       link.href = pdfUrl;
-      link.download = `${offerForm.name.trim()}_receipt_generation.pdf`;
+      link.download = `${receipt.name.trim()}_receipt_generation.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -442,7 +442,7 @@ const Trainee = () => {
       URL.revokeObjectURL(pdfUrl);
 
       await ApiService.put(`/api/trainees/update/${t.user_id}`, data);
-      toast.success("Certificate generation Successfully!", {
+      toast.success("Receipt generation Successfully!", {
         icon: <ToastLogo />,
         style: {
           color: "#16a34a",
