@@ -9,7 +9,7 @@ const StudentCard = ({ student }) => {
     const handleViewAll = () => {
         navigate(`/trainer/tasks/${trainerId}/${batchId}/${user_id}`)
     }
-    console.log(student)
+    log(student)
     return (
         <div
             className="

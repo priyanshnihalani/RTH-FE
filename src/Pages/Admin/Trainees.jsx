@@ -368,7 +368,6 @@ const Trainee = () => {
     );
 
     if (!durationObj) return 0;
-    console.log(Number(batch.prices[durationObj.value]) || 0)
     return Number(batch.prices[durationObj.value]) || 0;
   };
 

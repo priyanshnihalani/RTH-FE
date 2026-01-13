@@ -169,7 +169,6 @@ export const Notes = () => {
       }))
     }));
 
-    console.log(result)
   }
   useEffect(() => {
     fetchNotes()

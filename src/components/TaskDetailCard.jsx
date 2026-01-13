@@ -11,7 +11,6 @@ const TaskDetailCard = ({ task, onClose }) => {
   const location = useLocation()
   const { id } = useOutletContext()
 
-  console.log(task)
 
   useEffect(() => {
     if (!task?.id) return;
