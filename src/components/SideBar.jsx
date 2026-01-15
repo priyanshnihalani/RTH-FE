@@ -27,7 +27,7 @@ const linkClass = ({ isActive }) =>
 
 export default function Sidebar() {
   return (
-    <aside className="relative h-full p-2 ">
+    <aside className="relative h-full p-2 lg:p-6 ">
       {/* Logo */}
       <div className="flex items-center mb-10 space-x-2 justify-center lg:justify-start">
         <div className="p-1 shadow rounded-2xl">
@@ -74,7 +74,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Profile */}
-      <div className="flex items-center gap-3 absolute bottom-10 left-0 right-0 px-4 justify-center md:justify-start">
+      <div className="flex items-center gap-3 absolute bottom-10 left-4 right-0 px-6 justify-center md:justify-start">
         <User2 size={20} />
         <span className="text-sm font-medium hidden lg:inline">Admin</span>
       </div>

@@ -10,6 +10,10 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import BlockingLoader from "../../components/BlockingLoader";
 import Cookies from "js-cookie"
+import MonthlyTraineeChart from "../../components/MonthlyTraineeChart";
+import TechnologyPieChart from "../../components/Technology-wise";
+import CollegePieChart from "../../components/Collage-Wise";
+import YearSelector from "../../components/YearSelector";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -18,6 +22,10 @@ export default function Dashboard() {
     const [batches, setBatches] = useState([])
     const [pendingTrainees, setPendingTrainees] = useState([])
     const [loading, setLoading] = useState(false)
+    const [monthlyResponse, setMonthlyResponse] = useState({})
+    const [technologyResponse, setTechnologyResponse] = useState({})
+    const [collageResponse, setCollageResponse] = useState({})
+    const [year, setYear] = useState(new Date().getFullYear());
 
     const handleLogout = async () => {
         const res = await ApiService.get("/api/users/logout");
@@ -43,6 +51,27 @@ export default function Dashboard() {
         setTrainers(result || []);
     };
 
+    const fetchTraineesByMonth = async () => {
+        const res = await ApiService.post('/api/trainees/getByMonth', {
+            year
+        })
+        setMonthlyResponse(res)
+    }
+
+    const fetchTraineesCountByCollage = async () => {
+        const res = await ApiService.post('/api/trainees/getByCollage', {
+            year
+        })
+        setCollageResponse(res)
+    }
+
+    const fetchTraineeCountByTechnology = async () => {
+        const res = await ApiService.post('/api/trainees/getByTechnology', {
+            year
+        })
+        setTechnologyResponse(res)
+    }
+
     const fetchBatches = async () => {
         const result = await ApiService.get("/api/batch/getallbatchwithdetail");
         setBatches(result || []);
@@ -50,12 +79,14 @@ export default function Dashboard() {
     useEffect(() => {
         const loadAll = async () => {
             setLoading(true);
-
             try {
                 await Promise.all([
                     fetchTrainees(),
                     fetchAllTrainers(),
-                    fetchBatches()
+                    fetchBatches(),
+                    fetchTraineesByMonth(),
+                    fetchTraineesCountByCollage(),
+                    fetchTraineeCountByTechnology()
                 ]);
             } catch (error) {
                 console.error("Failed to load data", error);
@@ -65,7 +96,7 @@ export default function Dashboard() {
         };
 
         loadAll();
-    }, []);
+    }, [year]);
 
 
     return (
@@ -149,7 +180,17 @@ export default function Dashboard() {
         shadow-[0_20px_60px_rgba(0,0,0,0.08)]
         space-y-4
       ">
+                    <YearSelector value={year} onChange={setYear} />
+
+                    <div>
+                        <MonthlyTraineeChart key={`month-${year}`} apiResponse={monthlyResponse} />
+                    </div>
+                    <div className="flex flex-col lg:flex-row lg:justify-between">
+                        <TechnologyPieChart key={`tech-${year}`} apiResponse={technologyResponse} />
+                        <CollegePieChart key={`college-${year}`} apiResponse={collageResponse} />
+                    </div>
                     <div className="flex justify-between items-center">
+
                         <div>
                             <h2 className="text-lg font-semibold text-gray-800">
                                 Recent Registrations
@@ -159,6 +200,7 @@ export default function Dashboard() {
                             </p>
                         </div>
                     </div>
+
 
                     <div className={`space-y-2 min-h-65 flex flex-col ${trainees.length == 0 && "justify-center items-center"} `}>
                         {trainees.length === 0 ? (
@@ -233,8 +275,6 @@ export default function Dashboard() {
                     System status healthy · All services operational
                 </div>
             </div>
-
-
         </>
     );
 }

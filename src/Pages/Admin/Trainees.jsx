@@ -467,26 +467,26 @@ const Trainee = () => {
     }
   };
   const buildNotifications = (t) => {
-  const notifications = [];
+    const notifications = [];
 
-  const totalFees = Number(t.feesToPay || 0);
-  const paid = Number(t.paidFees || 0);
+    const totalFees = Number(t.feesToPay || 0);
+    const paid = Number(t.paidFees || 0);
 
-  if (totalFees > 0 && paid === 0) {
-    notifications.push("Fees not paid yet");
-  }
+    if (totalFees > 0 && paid === 0) {
+      notifications.push("Fees not paid yet");
+    }
 
-  if (totalFees > paid && paid > 0) {
-    notifications.push(
-      `Pending fees: ₹${totalFees - paid}`
-    );
-  }
+    if (totalFees > paid && paid > 0) {
+      notifications.push(
+        `Pending fees: ₹${totalFees - paid}`
+      );
+    }
 
-  return notifications;
-};
-const getNotificationCount = (t) => {
-  return Object.keys(t?.notification || {})?.length;
-};
+    return notifications;
+  };
+  const getNotificationCount = (t) => {
+    return Object.keys(t?.notification || {})?.length;
+  };
 
 
 
@@ -1032,9 +1032,8 @@ const getNotificationCount = (t) => {
                           </span>
                         </button>
                         <div className="relative group">
-  {/* 🔔 Bell Button */}
- <button
-  className="
+                          <button
+                            className="
     relative
     group
     flex items-center justify-center
@@ -1044,13 +1043,11 @@ const getNotificationCount = (t) => {
     hover:bg-primary/90
     transition
   "
->
-  {/* 🔔 Bell */}
-  <Bell size={18} />
+                          >
+                            <Bell size={18} />
 
-  {/* 🔴 Count badge */}
-    <span
-      className="
+                            <span
+                              className="
         absolute -top-1 -right-1
         min-w-[18px] h-[18px]
         bg-red-500 text-white
@@ -1059,37 +1056,49 @@ const getNotificationCount = (t) => {
         flex items-center justify-center
         shadow
       "
-    >
-      {getNotificationCount(t)}
-    </span>
+                            >
+                              {getNotificationCount(t)}
+                            </span>
 
 
-  {/* 📌 Hover Tooltip */}
-  <div
-    className="
-      absolute -top-12  mt-3
-      w-64
-      bg-white text-slate-700
-      rounded-xl shadow-lg border
-      opacity-0 scale-95
-      pointer-events-none
-      group-hover:opacity-100
-      group-hover:scale-100
-      group-hover:visible
-      group-hover:pointer-events-auto
-      transition-all duration-200
-      z-50
-    "
-  >
-    <div className="px-4 py-2 text-sm font-semibold border-b bg-slate-50">
-     {t?.notification?.feesReminder || t?.notification?.finish || "No Notification Available"}
-    </div>
+                            <div
+                              className="
+    absolute -top-24 left-1/2 -translate-x-1/4
+    w-72
+    bg-white text-slate-700
+    rounded-2xl shadow-xl ring-1 ring-slate-200
+    opacity-0 scale-95 translate-y-2
+    pointer-events-none
+    group-hover:opacity-100
+    group-hover:scale-100
+    group-hover:translate-y-0
+    group-hover:pointer-events-auto
+    transition-all duration-200 ease-out
+    z-50
+  "
+                            >
+                              {/* Header */}
+                              <div className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
+                  bg-gradient-to-r from-orange-50 to-white
+                  border-b rounded-t-2xl">
+                                <Bell size={14} className="text-[#FB8924]" />
+                                Notifications
+                              </div>
 
-  
-  </div>
-</button>
+                              {/* Body */}
+                              <div className="px-4 py-3 text-sm text-slate-600">
+                                {t?.notification?.feesReminder ||
+                                  t?.notification?.finish ||
+                                  "No notification available"}
+                              </div>
 
-</div>
+                              {/* Arrow */}
+                              <div className="absolute -bottom-2 left-1/3 -translate-x-3/4 w-3 h-3 bg-white rotate-45 border-r border-b border-slate-200" />
+                            </div>
+
+                          </button>
+
+                        </div>
 
                       </>
                     )}

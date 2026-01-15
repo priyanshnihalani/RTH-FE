@@ -1,4 +1,4 @@
-import StatCard from "./StatCard";
+import StatCard from "../../components/StatCard";
 import BatchCard from "./BatchCard";
 import BatchSkeleton from "./BatchSkeleton";
 import { useEffect, useState } from "react";
