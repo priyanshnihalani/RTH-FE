@@ -37,7 +37,6 @@ export default function Dashboard() {
 
     const handleStatus = async (id, bool) => {
         await ApiService.put(`api/trainees/update/${id}`, { admissionStatus: bool ? "approved" : "blocked" })
-
     }
 
     const fetchTrainees = async () => {
@@ -76,25 +75,25 @@ export default function Dashboard() {
         const result = await ApiService.get("/api/batch/getallbatchwithdetail");
         setBatches(result || []);
     };
-    useEffect(() => {
-        const loadAll = async () => {
-            setLoading(true);
-            try {
-                await Promise.all([
-                    fetchTrainees(),
-                    fetchAllTrainers(),
-                    fetchBatches(),
-                    fetchTraineesByMonth(),
-                    fetchTraineesCountByCollage(),
-                    fetchTraineeCountByTechnology()
-                ]);
-            } catch (error) {
-                console.error("Failed to load data", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const loadAll = async () => {
+        setLoading(true);
+        try {
+            await Promise.all([
+                fetchTrainees(),
+                fetchAllTrainers(),
+                fetchBatches(),
+                fetchTraineesByMonth(),
+                fetchTraineesCountByCollage(),
+                fetchTraineeCountByTechnology()
+            ]);
+        } catch (error) {
+            console.error("Failed to load data", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         loadAll();
     }, [year]);
 
@@ -185,7 +184,7 @@ export default function Dashboard() {
                     <div>
                         <MonthlyTraineeChart key={`month-${year}`} apiResponse={monthlyResponse} />
                     </div>
-                    <div className="flex flex-col lg:flex-row lg:justify-between">
+                    <div className="flex flex-col xl:flex-row lg:justify-between">
                         <TechnologyPieChart key={`tech-${year}`} apiResponse={technologyResponse} />
                         <CollegePieChart key={`college-${year}`} apiResponse={collageResponse} />
                     </div>
