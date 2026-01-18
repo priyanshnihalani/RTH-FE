@@ -1,8 +1,3 @@
-Below is a professional, production-ready **README.md** for the **Frontend (FE)** of your *Training Hub* project for **Techrover Solutions**.
-It is written in a simple, clear style and can be directly copied into your repository.
-
----
-
 # 🚀 Training Hub – Frontend
 
 **Techrover Solutions**
@@ -151,7 +146,3 @@ npm run build
 ```
 
 The optimized files will be generated in the `dist/` folder.
-
----
-
-
