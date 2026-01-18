@@ -8,7 +8,7 @@ const Header = (id) => {
   const handleLogout = async () => {
     await ApiService.get("/api/users/logout");
     Cookie.remove("accessToken");
-    navigate("/login", {replace: true});
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -39,11 +39,12 @@ const Header = (id) => {
           className="
             flex items-center gap-2
             bg-primary text-white
-            px-4 py-2
-            rounded-xl
+            px-4 py-3
+            rounded-lg
             text-sm
             hover:bg-primary-dark
             cursor-pointer
+            font-semibold
           "
         >
           <NotebookTabsIcon size={16} />
@@ -53,18 +54,26 @@ const Header = (id) => {
         <button
           onClick={handleLogout}
           className="
-            flex items-center gap-2
-            bg-primary text-white
-            px-4 py-2
-            rounded-xl
-            text-sm
-            hover:bg-primary-dark
-            cursor-pointer
-          "
+    flex items-center gap-2
+    text-white
+    px-4 py-3
+    rounded-lg
+    text-sm
+    font-semibold
+    cursor-pointer
+
+    bg-primary
+    shadow-md shadow-orange-300/40
+
+    transition-all duration-300
+    hover:shadow-lg hover:shadow-orange-400/50
+    hover:scale-[1.05]
+    active:scale-[0.95]
+  "
         >
-          <LogOut size={16} />
-          Logout
+          <LogOut size={18} />
         </button>
+
       </div>
     </header>
   );

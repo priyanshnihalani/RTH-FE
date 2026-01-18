@@ -65,7 +65,7 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
     setSubmitting(true);
     try {
       await ApiService.put(`/api/batch/updateBatch/${batch?.id}`, formData);
-      toast.success("Trainee Updated Successfully!", {
+      toast.success("Course Updated Successfully!", {
         icon: <ToastLogo />,
         style: {
           color: "#16a34a",
@@ -98,7 +98,7 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
         {/* -------- BASIC INFO -------- */}
         <div className="space-y-4">
           <h3 className="text-sm font-semibold text-slate-700">
-            Batch Information
+            Course Information
           </h3>
 
           {/* Batch Name */}
@@ -123,7 +123,7 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
 
           <div className="space-y-2">
             <label className="text-xs font-medium text-slate-600">
-              Batch Fees
+              Course Fees
             </label>
 
             <div className="grid grid-cols-2 gap-3">
@@ -188,7 +188,7 @@ const EditBatchModal = ({ open, onClose, batch, onSuccess }) => {
               disabled:opacity-60
             "
           >
-            {submitting ? "Updating..." : "Update Batch"}
+            {submitting ? "Updating..." : "Update Course"}
           </button>
         </div>
       </form>

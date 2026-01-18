@@ -191,7 +191,7 @@ const Task = () => {
         {/* HEADER */}
         <div
           className="
-      mx-8 mt-8 mb-12
+      mx-8 mt-8 mb-8
       rounded-2xl
       p-6
       flex justify-between items-center
@@ -221,9 +221,8 @@ const Task = () => {
 
         {/* KANBAN */}
         <div
-          className="min-h-screen
-      px-8 pb-12
-      grid grid-cols-1 md:grid-cols-3 gap-10
+          className="min-h-screen 
+      grid grid-cols-1 md:grid-cols-3 gap-10 bg-white p-8
     "
         >
           <TaskColumn

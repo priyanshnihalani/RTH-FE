@@ -28,7 +28,7 @@ const TraineeDashboard = () => {
     try {
       const res = await ApiService.post("/api/task/mytasks", {
         traineeId: userDetails?.data.user_id,
-        batchId: userDetails.data?.TraineeBatches[0].id
+        batchId: userDetails.data?.TraineeBatches?.at(-1)?.id
       });
       setTasks(res);
     } catch (err) {
@@ -83,7 +83,7 @@ const TraineeDashboard = () => {
         </div>
 
         <h1 className="font-semibold text-gray-700">
-          Batch: <span className="font-bold">{userDetails?.data?.TraineeBatches[0]?.technology || "Will Be Assigned Soon"}</span>
+          Batch: <span className="font-bold">{userDetails?.data?.TraineeBatches.at(-1)?.technology || "Will Be Assigned Soon"}</span>
         </h1>
       </div>
 

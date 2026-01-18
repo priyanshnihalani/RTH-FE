@@ -5,6 +5,7 @@ import { Select, MenuItem, TextField, Button, IconButton } from "@mui/material";
 import {
   ArrowDown,
   ArrowDown01,
+  ArrowRight,
   ArrowUp,
   Award,
   Bell,
@@ -14,6 +15,7 @@ import {
   PenIcon,
   Receipt,
   Save,
+  Search,
   Trash2Icon,
   X,
 } from "lucide-react";
@@ -25,6 +27,7 @@ import dayjs from "dayjs";
 import calculateEndDate from "../../Services/CalculateEndDate";
 import ToastLogo from "../../components/ToastLogo";
 import { toast } from "react-toastify";
+import { useMemo } from "react";
 
 const Trainee = () => {
   const navigate = useNavigate();
@@ -39,6 +42,10 @@ const Trainee = () => {
     "certificate" || "offer" || "Receipt"
   ); // "certificate" | "offer"
   const [selectedTrainee, setSelectedTrainee] = useState(null);
+  const [openDetails, setOpenDetails] = useState(false);
+  const [activeTrainee, setActiveTrainee] = useState(null);
+  const [search, setSearch] = useState("");
+  const [visibleCount, setVisibleCount] = useState(30);
   const [offerForm, setOfferForm] = useState({
     joinedAt: "",
     name: "",
@@ -65,6 +72,8 @@ const Trainee = () => {
     name: "",
     amount: "",
     type: "",
+    phone: "",
+    email: ""
   });
 
   const [errors, setErrors] = useState({});
@@ -93,8 +102,9 @@ const Trainee = () => {
         adharSubmitted: t.registration?.adharSubmitted ?? t.adharSubmitted,
         trainingStatus: t.registration?.trainingStatus ?? t.trainingStatus,
         feesToPay: t.registration?.feesToPay ?? 0,
-        paidFees: t.registration?.paidFees ?? 0,
         wantToBoard: t.registration?.wantToBoard,
+        configuration: t.registration?.configuration,
+        system: t.registration?.system
       }));
 
     setTrainees(normalized);
@@ -111,6 +121,21 @@ const Trainee = () => {
     fetchBatches();
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const nearBottom =
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 200;
+
+      if (nearBottom) {
+        setVisibleCount((prev) => prev + 20);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   /* ---------- EDIT ---------- */
   const startEdit = (t) => {
     setEditingId(t.user_id);
@@ -122,7 +147,6 @@ const Trainee = () => {
       phone: t.phone || "",
       batches: t.batches?.map(b => b.id) || [],
       feesToPay: t.feesToPay ?? 0,
-      paidFees: t?.paidFees ?? 0,
       admissionStatus: t.admissionStatus || "pending",
       trainingStatus: t.trainingStatus || "not_started",
       shift: t.shift ?? false,
@@ -134,6 +158,8 @@ const Trainee = () => {
       ndaSigned: !!t.ndaSigned,
       adharSubmitted: !!t.adharSubmitted,
       remarks2: t.remarks2 || "",
+      system: t.system || null,
+      configuration: t.configuration || ""
     });
   };
 
@@ -335,13 +361,22 @@ const Trainee = () => {
 
   const handleGeneratecertificate = async () => {
     if (!validatecertificateForm()) return;
-    const { joinedDate, endDate, batch, manager, duration, name } = certificate;
+
     try {
       setLoading(true);
 
+      const certificateId = `TR-CERT-${Date.now()}`;
+
+      const payload = {
+        ...certificate,
+        certificateId,
+      };
+
+      await ApiService.post("/api/certificate/create", payload);
+
       const buffer = await ApiService.post(
         "/api/generateOfferLetter/certificate_generation",
-        certificate,
+        payload,
         {
           responseType: "blob",
         }
@@ -355,66 +390,46 @@ const Trainee = () => {
       const link = document.createElement("a");
 
       link.href = pdfUrl;
-      link.download = `${offerForm.name.trim()}_certificate.pdf`;
+      link.download = `${certificate.name.trim()}_certificate.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
       URL.revokeObjectURL(pdfUrl);
-      toast.success("Certificate generation Successfully!", {
+
+      toast.success("Certificate generated successfully!", {
         icon: <ToastLogo />,
-        style: {
-          color: "#16a34a",
-        },
+        style: { color: "#16a34a" },
         autoClose: 2000,
       });
+
       setOpenGenerateModal(false);
       setErrors({});
     } catch (error) {
       toast.error("Certificate generation failed", {
         icon: <ToastLogo />,
-        style: {
-          color: "#dc2626",
-        },
+        style: { color: "#dc2626" },
         autoClose: 3000,
       });
     } finally {
       setLoading(false);
     }
   };
+
   const handleReceiptSubmit = async (t) => {
     if (!validateReceipt()) return;
     try {
       setLoading(true);
 
-      const alreadyPaid = Number(t?.paidFees || 0);
       const currentPay = Number(receipt?.amount || 0);
 
       const data = {
-        name: t.name || "",
-        education: t.education || "",
-        email: t.email || "",
-        college: t.college || "",
-        phone: t.phone || "",
-        batches: t.batches?.map(b => b.id) || [],
         feesToPay: calculateFees(t) ?? 0,
-        paidFees: alreadyPaid + currentPay,
-        admissionStatus: t.admissionStatus || "pending",
-        trainingStatus: t.trainingStatus || "not_started",
-        shift: t.shift ?? false,
-        joinedDate: t.joinedDate || "",
-        branch: t.branch || "",
-        duration: t.duration || "",
-        wantToBoard: t.wantToBoard,
-        certificateIssued: !!t.certificateIssued,
-        ndaSigned: !!t.ndaSigned,
-        adharSubmitted: !!t.adharSubmitted,
-        remarks2: t.remarks2 || "",
       }
 
       const totalFees = Number(data.feesToPay || 0);
 
-      if (alreadyPaid + currentPay > totalFees) {
+      if (currentPay > totalFees) {
         return toast.error("Receipt Amount Should Not Exceed Total Fees");
       }
 
@@ -441,7 +456,6 @@ const Trainee = () => {
 
       URL.revokeObjectURL(pdfUrl);
 
-      await ApiService.put(`/api/trainees/update/${t.user_id}`, data);
       toast.success("Receipt generation Successfully!", {
         icon: <ToastLogo />,
         style: {
@@ -455,6 +469,8 @@ const Trainee = () => {
       setReceipt({
         t: "",
         name: "",
+        phone: "",
+        email: "",
         amount: "",
         type: "",
       });
@@ -491,11 +507,10 @@ const Trainee = () => {
 
 
   const calculateFees = (t) => {
+    const lastBatchId = t?.batches?.at(-1)?.id;
+    if (!lastBatchId || !t?.duration) return 0;
 
-    const batchId = t?.batches?.[0]?.id;
-    if (!batchId || !t?.duration) return 0;
-
-    const batch = batches.find(b => b.id === batchId);
+    const batch = batches.find(b => b.id === lastBatchId);
     if (!batch || !batch.prices) return 0;
 
     const durationObj = ConstantService.DURATION_MAP.find(
@@ -503,8 +518,29 @@ const Trainee = () => {
     );
 
     if (!durationObj) return 0;
+
     return Number(batch.prices[durationObj.value]) || 0;
   };
+
+  const filteredTrainees = useMemo(() => {
+    return trainees.filter(t =>
+      t.name?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [trainees, search]);
+
+  const limitedTrainees = useMemo(() => {
+    return filteredTrainees.slice(0, visibleCount);
+  }, [filteredTrainees, visibleCount]);
+
+  const groupedTrainees = useMemo(() => {
+    return limitedTrainees.reduce((acc, t) => {
+      const letter = t.name?.charAt(0).toUpperCase() || "#";
+      if (!acc[letter]) acc[letter] = [];
+      acc[letter].push(t);
+      return acc;
+    }, {});
+  }, [limitedTrainees]);
+
 
   return (
     <>
@@ -512,454 +548,212 @@ const Trainee = () => {
 
       <div className="min-h-screen bg-linear-to-br from-orange-50 via-white to-orange-100 p-8 space-y-8">
         {/* HEADER */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-6 shadow">
-          <h1 className="text-3xl font-bold">Trainee Management</h1>
-          <p className="text-sm text-gray-500">Manage trainee details</p>
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Trainee Management</h1>
+            <p className="text-sm text-gray-500">Manage trainee details</p>
+          </div>
+
+          <div className="relative w-sm">
+            <Search
+              className="absolute left-3 top-[1.2rem] text-gray-400"
+              size={18}
+            />
+            <input
+              placeholder="Search by name or email..."
+              className="
+          w-full pl-10 p-4
+          rounded-xl border-2 border-primary
+          bg-white
+          text-sm
+          focus:ring-2 focus:ring-[#FB8924]/40
+          outline-none
+        "
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
 
         {/* TABLE */}
-        <div className="bg-white p-4 rounded-2xl grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
-          {trainees.map((t) => {
-            const isEdit = editingId === t.user_id;
-            return (
-              <div
-                key={t.user_id}
-                className="rounded-2xl overflow-hidden  shadow bg-white flex flex-col"
-              >
-                {/* Header */}
-                <div className="bg-orange-50 h-20 flex items-center justify-center">
-                  <div className="w-15 h-15 rounded-2xl bg-orange-100 flex items-center justify-center">
-                    <span className="text-orange-600 font-semibold text-lg">
-                      {t.name
-                        ?.split(" ")
-                        .map((w) => w[0])
-                        .join("")
-                        .toUpperCase()}
-                    </span>
-                  </div>
-                </div>
+        <div className="flex flex-col gap-10 bg-white p-5 rounded-2xl">
+          {Object.keys(groupedTrainees).sort().map((letter) => (
 
-                {/* Body */}
-                <div className="p-4 space-y-2 text-sm flex-1">
-                  <Row label="Name">
-                    {isEdit ? (
-                      <TextField
-                        size="small"
-                        value={draft.name}
-                        onChange={(e) => updateDraft("name", e.target.value)}
-                      />
-                    ) : (
-                      t.name
-                    )}
-                  </Row>
 
-                  <Row label="Email">
-                    {isEdit ? (
-                      <TextField
-                        size="small"
-                        value={draft.email}
-                        onChange={(e) => updateDraft("email", e.target.value)}
-                      />
-                    ) : (
-                      t.email
-                    )}
-                  </Row>
+            <div key={letter} className="space-y-4">
+              <div className="px-4 py-2 bg-orange-100 text-orange-700 font-bold rounded-lg  z-10">
+                {letter}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {groupedTrainees[letter].map((t) => {
+                  const isEdit = editingId === t.user_id;
+                  const activeBatches = isEdit
+                    ? draft.batches?.map(id => ({ id }))
+                    : t.batches || [];
 
-                  <Row label="Batch">
-                    {isEdit ? (
-                      <Select
-                        size="small"
-                        value={draft.batches?.[0] ?? ""}
-                        displayEmpty
-                        onChange={(e) =>
-                          updateDraft(
-                            "batches",
-                            e.target.value ? [e.target.value] : []
-                          )
-                        }
-                        renderValue={(s) => {
-                          if (!s) return "Select Batch";
-                          return (
-                            batches.find((b) => b.id === s)?.technology || "-"
-                          );
-                        }}
-                      >
-                        {batches.map((b) => (
-                          <MenuItem key={b.id} value={b.id}>
-                            {b.technology}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    ) : (
-                      t.batches?.map((b) => b.name).join(", ") || "-"
-                    )}
-                  </Row>
+                  const lastBatchId = activeBatches?.at(-1)?.id;
+                  const lastBatch = batches.find(b => b.id === lastBatchId);
 
-                  <Row label="Training Status">
-                    {isEdit ? (
-                      <Select
-                        size="small"
-                        value={draft.trainingStatus}
-                        onChange={(e) =>
-                          updateDraft("trainingStatus", e.target.value)
-                        }
-                      >
-                        {ConstantService.TrainingStatus.map((s) => (
-                          <MenuItem key={s.value} value={s.value}>
-                            {s.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    ) : (
-                      ConstantService.TrainingStatus.find(
-                        (s) => s.value === t.trainingStatus
-                      )?.label || "-"
-                    )}
-                  </Row>
+                  return (
+                    <div
+                      key={t.user_id}
+                      className="rounded-2xl overflow-hidden  shadow bg-white flex flex-col"
+                    >
+                      {/* Header */}
+                      <div className="bg-orange-50 h-20 flex items-center justify-center">
+                        <div className="w-15 h-15 rounded-2xl bg-orange-100 flex items-center justify-center">
+                          <span className="text-orange-600 font-semibold text-lg">
+                            {t.name
+                              ?.split(" ")
+                              .map((w) => w[0])
+                              .join("")
+                              .toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
 
-                  <Row label="Joined Date">
-                    {isEdit ? (
-                      <input
-                        type="date"
-                        value={
-                          draft.joinedDate
-                            ? dayjs(draft.joinedDate).format("YYYY-MM-DD")
-                            : ""
-                        }
-                        onChange={(e) =>
-                          updateDraft("joinedDate", e.target.value)
-                        }
-                        className="px-2 py-1 border rounded-md text-xs"
-                      />
-                    ) : t.joinedDate ? (
-                      dayjs(t.joinedDate).format("DD-MM-YYYY")
-                    ) : (
-                      "-"
-                    )}
-                  </Row>
+                      {/* Body */}
+                      <div className="p-4 space-y-2 text-sm flex-1">
+                        <Row label="Name">
+                          {isEdit ? (
+                            <TextField
+                              size="small"
+                              value={draft.name}
+                              onChange={(e) => updateDraft("name", e.target.value)}
+                            />
+                          ) : (
+                            t.name
+                          )}
+                        </Row>
 
-                  <Row label="End Date">
-                    {isEdit ? (
-                      <input
-                        type="date"
-                        value={
-                          draft.endDate
-                            ? dayjs(draft.endDate).format("YYYY-MM-DD")
-                            : draft.joinedDate && draft.duration
-                              ? calculateEndDate(draft.joinedDate, draft.duration)
-                                .datepicker
-                              : ""
-                        }
-                        onChange={(e) => updateDraft("endDate", e.target.value)}
-                        className="px-2 py-1 border rounded-md text-xs"
-                      />
-                    ) : t.endDate ? (
-                      dayjs(t.endDate).format("DD-MM-YYYY")
-                    ) : t.joinedDate && t.duration ? (
-                      calculateEndDate(t.joinedDate, t.duration).displaydate
-                    ) : (
-                      "-"
-                    )}
-                  </Row>
+                        <Row label="Email">
+                          {isEdit ? (
+                            <TextField
+                              size="small"
+                              value={draft.email}
+                              onChange={(e) => updateDraft("email", e.target.value)}
+                            />
+                          ) : (
+                            t.email
+                          )}
+                        </Row>
 
-                  <button
-                    onClick={() =>
-                      setOpenId(openId === t.user_id ? null : t.user_id)
-                    }
-                    className="cursor-pointer text-orange-600 text-xs font-medium mt-1 flex items-center gap-1"
-                  >
-                    {openId === t.user_id ? (
-                      <>
-                        <span>Hide details</span>
-                        <ArrowUp size={16} />
-                      </>
-                    ) : (
-                      <>
-                        <span>More details</span>
-                        <ArrowDown size={16} />
-                      </>
-                    )}
-                  </button>
+                        <Row label="Batch">
+                          {isEdit ? (
+                            <Select
+                              size="small"
+                              value={lastBatchId ?? ""}
+                              displayEmpty
+                              onChange={(e) =>
+                                updateDraft(
+                                  "batches",
+                                  e.target.value ? [Number(e.target.value)] : []
+                                )
+                              }
+                              renderValue={(s) => {
+                                if (!s) return "Select Batch";
+                                return batches.find((b) => b.id === Number(s))?.technology || "-";
+                              }}
+                            >
+                              {batches.map((b) => (
+                                <MenuItem key={b.id} value={b.id}>
+                                  {b.technology}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          ) : (
+                            lastBatch ? <span>{lastBatch.name || lastBatch.technology}</span> : "-"
+                          )}
+                        </Row>
 
-                  {openId === t.user_id && (
-                    <>
-                      <Row label="Education">
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            value={draft.education}
-                            onChange={(e) =>
-                              updateDraft("education", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.education || "-"
-                        )}
-                      </Row>
+                        <Row label="Training Status">
+                          {isEdit ? (
+                            <Select
+                              size="small"
+                              value={draft.trainingStatus}
+                              onChange={(e) =>
+                                updateDraft("trainingStatus", e.target.value)
+                              }
+                            >
+                              {ConstantService.TrainingStatus.map((s) => (
+                                <MenuItem key={s.value} value={s.value}>
+                                  {s.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          ) : (
+                            ConstantService.TrainingStatus.find(
+                              (s) => s.value === t.trainingStatus
+                            )?.label || "-"
+                          )}
+                        </Row>
 
-                      <Row label="College">
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            value={draft.college}
-                            onChange={(e) =>
-                              updateDraft("college", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.college || "-"
-                        )}
-                      </Row>
+                        <Row label="Joined Date">
+                          {isEdit ? (
+                            <input
+                              type="date"
+                              value={
+                                draft.joinedDate
+                                  ? dayjs(draft.joinedDate).format("YYYY-MM-DD")
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                updateDraft("joinedDate", e.target.value)
+                              }
+                              className="px-2 py-1 border rounded-md text-xs"
+                            />
+                          ) : t.joinedDate ? (
+                            dayjs(t.joinedDate).format("DD-MM-YYYY")
+                          ) : (
+                            "-"
+                          )}
+                        </Row>
 
-                      <Row label="Phone">
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            value={draft.phone}
-                            onChange={(e) =>
-                              updateDraft("phone", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.phone || "-"
-                        )}
-                      </Row>
+                        <Row label="End Date">
+                          {isEdit ? (
+                            <input
+                              type="date"
+                              value={
+                                draft.endDate
+                                  ? dayjs(draft.endDate).format("YYYY-MM-DD")
+                                  : draft.joinedDate && draft.duration
+                                    ? calculateEndDate(draft.joinedDate, draft.duration)
+                                      .datepicker
+                                    : ""
+                              }
+                              onChange={(e) => updateDraft("endDate", e.target.value)}
+                              className="px-2 py-1 border rounded-md text-xs"
+                            />
+                          ) : t.endDate ? (
+                            dayjs(t.endDate).format("DD-MM-YYYY")
+                          ) : t.joinedDate && t.duration ? (
+                            calculateEndDate(t.joinedDate, t.duration).displaydate
+                          ) : (
+                            "-"
+                          )}
+                        </Row>
 
-                      <Row label="Branch">
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.branch ?? ""}
-                            displayEmpty
-                            onChange={(e) =>
-                              updateDraft("branch", e.target.value)
-                            }
-                          >
-                            {ConstantService.Branch.map((b) => (
-                              <MenuItem key={b.value} value={b.value}>
-                                {b.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.Branch.find(
-                            (b) => b.value === t.branch
-                          )?.label || "-"
-                        )}
-                      </Row>
-
-                      <Row label="Fees">
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            type="number"
-                            value={calculateFees(t) || draft.feesToPay}
-                            onChange={(e) => updateDraft("feesToPay", e.target.value)}
-                          />
-                        ) : calculateFees(t)}
-                      </Row>
-
-                      <Row label="Paid">
-                        {isEdit ? (
-                          <TextField
-                            disabled
-                            size="small"
-                            type="number"
-                            value={draft.paidFees}
-                            onChange={(e) => updateDraft("paidFees", e.target.value)}
-                          />
-                        ) : t.paidFees || 0}
-                      </Row>
-
-                      <Row label="Admission Status">
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.admissionStatus}
-                            onChange={(e) =>
-                              updateDraft("admissionStatus", e.target.value)
-                            }
-                          >
-                            {ConstantService.AdmissionStatus.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.AdmissionStatus.find(
-                            (s) => s.value === t.admissionStatus
-                          )?.label || "-"
-                        )}
-                      </Row>
-
-                      <Row label="Duration">
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.duration ?? ""}
-                            displayEmpty
-                            onChange={(e) =>
-                              updateDraft("duration", e.target.value)
-                            }
-                          >
-                            {ConstantService.Duration.map((d) => (
-                              <MenuItem key={d.value} value={d.value}>
-                                {d.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.Duration.find(
-                            (d) => d.value === t.duration
-                          )?.label || "-"
-                        )}
-                      </Row>
-
-                      <Row label="Certificate Issued">
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.certificateIssued}
-                            onChange={(e) =>
-                              updateDraft("certificateIssued", e.target.value)
-                            }
-                          >
-                            {ConstantService.YesNo.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.YesNo.find(
-                            (s) => s.value === t.certificateIssued
-                          )?.label || "No"
-                        )}
-                      </Row>
-
-                      <Row label="Notes">
-                        <IconButton
-                          size="small"
-                          onClick={() => navigate(`/admin/notes/${t.user_id}`)}
-                        >
-                          <CalendarDays size={16} className="text-primary" />
-                        </IconButton>
-                      </Row>
-
-                      <Row label="Shift">
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.shift ?? ""}
-                            onChange={(e) =>
-                              updateDraft("shift", e.target.value)
-                            }
-                          >
-                            {ConstantService.Shift.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.Shift.find((s) => s.value === t.shift)
-                            ?.label || "-"
-                        )}
-                      </Row>
-
-                      <Row label="Want To Board">
-                        {isEdit ? (
-                          <Select
-                            disabled={draft.trainingStatus != "completed"}
-                            size="small"
-                            value={draft.wantToBoard}
-                            onChange={(e) =>
-                              updateDraft("wantToBoard", e.target.value)
-                            }
-                          >
-                            {ConstantService.YesNo.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.YesNo.find(
-                            (s) => s.value === t.wantToBoard
-                          )?.label || "-"
-                        )}
-                      </Row>
-
-                      <Row label="NDA Signed">
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.ndaSigned}
-                            onChange={(e) =>
-                              updateDraft("ndaSigned", e.target.value)
-                            }
-                          >
-                            {ConstantService.YesNo.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.YesNo.find(
-                            (s) => s.value === t.ndaSigned
-                          )?.label || "No"
-                        )}
-                      </Row>
-
-                      <Row label="Aadhar Submitted">
-                        {isEdit ? (
-                          <Select
-                            size="small"
-                            value={draft.adharSubmitted}
-                            onChange={(e) =>
-                              updateDraft("adharSubmitted", e.target.value)
-                            }
-                          >
-                            {ConstantService.YesNo.map((s) => (
-                              <MenuItem key={s.value} value={s.value}>
-                                {s.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          ConstantService.YesNo.find(
-                            (s) => s.value === t.adharSubmitted
-                          )?.label || "No"
-                        )}
-                      </Row>
-
-                      <Row label="Remarks">
-                        {isEdit ? (
-                          <TextField
-                            size="small"
-                            value={draft.remarks2 || ""}
-                            onChange={(e) =>
-                              updateDraft("remarks2", e.target.value)
-                            }
-                          />
-                        ) : (
-                          t.remarks2 || "-"
-                        )}
-                      </Row>
-                    </>
-                  )}
-                </div>
-                {/* Footer */}
-                <div className="border-t px-2 py-3 space-x-2 flex justify-between items-center">
-                  <div className="flex gap-1">
-                    {isEdit ? (
-                      <>
-                        {/* Save */}
                         <button
-                          onClick={() => saveTrainee(t.user_id)}
-                          className="
+                          onClick={() => {
+                            setActiveTrainee(t);
+                            setOpenDetails(true);
+                          }}
+                          className="cursor-pointer text-orange-600 text-xs font-medium mt-1 flex items-center gap-1"
+                        >
+                          <span>More details</span>
+                          <ArrowRight size={16} />
+                        </button>
+
+                      </div>
+                      {/* Footer */}
+                      <div className="border-t px-2 py-3 space-x-2 flex justify-between items-center">
+                        <div className="flex gap-1">
+                          {isEdit ? (
+                            <>
+                              {/* Save */}
+                              <button
+                                onClick={() => saveTrainee(t.user_id)}
+                                className="
           group flex items-center gap-2
           w-9 hover:w-24
           rounded-full bg-primary text-white
@@ -968,17 +762,17 @@ const Trainee = () => {
           transition-all duration-300 ease-in-out
           cursor-pointer
         "
-                        >
-                          <Save size={18} className="shrink-0" />
-                          <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            Save
-                          </span>
-                        </button>
+                              >
+                                <Save size={18} className="shrink-0" />
+                                <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                  Save
+                                </span>
+                              </button>
 
-                        {/* Cancel */}
-                        <button
-                          onClick={() => setEditingId(null)}
-                          className="
+                              {/* Cancel */}
+                              <button
+                                onClick={() => setEditingId(null)}
+                                className="
           group flex items-center gap-2
           w-9 hover:w-28
           rounded-full bg-primary text-white
@@ -987,19 +781,19 @@ const Trainee = () => {
           transition-all duration-300 ease-in-out
           cursor-pointer
         "
-                        >
-                          <X size={18} className="shrink-0" />
-                          <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            Cancel
-                          </span>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        {/* Edit */}
-                        <button
-                          onClick={() => startEdit(t)}
-                          className="
+                              >
+                                <X size={18} className="shrink-0 " />
+                                <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                  Cancel
+                                </span>
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {/* Edit */}
+                              <button
+                                onClick={() => startEdit(t)}
+                                className="
           group flex items-center gap-2
           w-9 hover:w-24
           rounded-full bg-primary text-white
@@ -1007,17 +801,17 @@ const Trainee = () => {
           overflow-hidden
           transition-all duration-300 ease-in-out
         "
-                        >
-                          <PenIcon size={18} className="shrink-0" />
-                          <span className="text-sm cursor-pointer whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            Edit
-                          </span>
-                        </button>
+                              >
+                                <PenIcon size={18} className="shrink-0" />
+                                <span className="text-sm cursor-pointer whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                  Edit
+                                </span>
+                              </button>
 
-                        {/* Delete */}
-                        <button
-                          onClick={() => deleteTrainee(t.user_id)}
-                          className="
+                              {/* Delete */}
+                              <button
+                                onClick={() => deleteTrainee(t.user_id)}
+                                className="
           group flex items-center gap-2
           w-9 hover:w-28
           rounded-full bg-primary text-white
@@ -1025,15 +819,15 @@ const Trainee = () => {
           overflow-hidden
           transition-all duration-300 ease-in-out
         "
-                        >
-                          <Trash2Icon size={18} className="shrink-0" />
-                          <span className="text-sm cursor-pointer whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            Delete
-                          </span>
-                        </button>
-                        <div className="relative group">
-                          <button
-                            className="
+                              >
+                                <Trash2Icon size={18} className="shrink-0" />
+                                <span className="text-sm cursor-pointer whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                  Delete
+                                </span>
+                              </button>
+                              <div className="relative group">
+                                <button
+                                  className="
     relative
     group
     flex items-center justify-center
@@ -1043,11 +837,11 @@ const Trainee = () => {
     hover:bg-primary/90
     transition
   "
-                          >
-                            <Bell size={18} />
+                                >
+                                  <Bell size={18} />
 
-                            <span
-                              className="
+                                  <span
+                                    className="
         absolute -top-1 -right-1
         min-w-[18px] h-[18px]
         bg-red-500 text-white
@@ -1056,13 +850,13 @@ const Trainee = () => {
         flex items-center justify-center
         shadow
       "
-                            >
-                              {getNotificationCount(t)}
-                            </span>
+                                  >
+                                    {getNotificationCount(t)}
+                                  </span>
 
 
-                            <div
-                              className="
+                                  <div
+                                    className="
     absolute -top-24 left-1/2 -translate-x-1/4
     w-72
     bg-white text-slate-700
@@ -1076,49 +870,51 @@ const Trainee = () => {
     transition-all duration-200 ease-out
     z-50
   "
-                            >
-                              {/* Header */}
-                              <div className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
+                                  >
+                                    {/* Header */}
+                                    <div className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
                   bg-gradient-to-r from-orange-50 to-white
                   border-b rounded-t-2xl">
-                                <Bell size={14} className="text-[#FB8924]" />
-                                Notifications
+                                      <Bell size={14} className="text-[#FB8924]" />
+                                      Notifications
+                                    </div>
+
+                                    {/* Body */}
+                                    <div className="px-4 py-3 text-sm text-slate-600">
+                                      {t?.notification?.feesReminder ||
+                                        t?.notification?.finish ||
+                                        "No notification available"}
+                                    </div>
+
+                                    {/* Arrow */}
+                                    <div className="absolute -bottom-2 left-1/3 -translate-x-3/4 w-3 h-3 bg-white rotate-45 border-r border-b border-slate-200" />
+                                  </div>
+
+                                </button>
+
                               </div>
 
-                              {/* Body */}
-                              <div className="px-4 py-3 text-sm text-slate-600">
-                                {t?.notification?.feesReminder ||
-                                  t?.notification?.finish ||
-                                  "No notification available"}
-                              </div>
-
-                              {/* Arrow */}
-                              <div className="absolute -bottom-2 left-1/3 -translate-x-3/4 w-3 h-3 bg-white rotate-45 border-r border-b border-slate-200" />
-                            </div>
-
-                          </button>
-
+                            </>
+                          )}
                         </div>
 
-                      </>
-                    )}
-                  </div>
-
-                  <div className="flex gap-1">
-                    {/* Receape */}
-                    <button
-                      onClick={() => {
-                        setGenerateType("Receipt");
-                        setSelectedTrainee(t);
-                        setReceipt({
-                          t: t,
-                          name: t.name,
-                          Amount: t.amount,
-                          type: t.type,
-                        });
-                        setOpenGenerateModal(true);
-                      }}
-                      className="
+                        <div className="flex gap-1">
+                          {/* Receape */}
+                          <button
+                            onClick={() => {
+                              setGenerateType("Receipt");
+                              setSelectedTrainee(t);
+                              setReceipt({
+                                t: t,
+                                name: t.name,
+                                Amount: t.amount,
+                                type: t.type,
+                                phone: t.phone,
+                                email: t.email
+                              });
+                              setOpenGenerateModal(true);
+                            }}
+                            className="
       group flex items-center gap-2
       w-9 hover:w-32
       rounded-full bg-primary text-white
@@ -1128,33 +924,33 @@ const Trainee = () => {
       disabled:opacity-50 disabled:cursor-not-allowed
       cursor-pointer
     "
-                    >
-                      <Receipt size={18} className="shrink-0" />
-                      <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        Receipt
-                      </span>
-                    </button>
+                          >
+                            <Receipt size={18} className="shrink-0" />
+                            <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              Receipt
+                            </span>
+                          </button>
 
-                    {/* Certificate */}
-                    <button
-                      disabled={t.trainingStatus !== "completed"}
-                      onClick={() => {
-                        setGenerateType("certificate");
-                        setSelectedTrainee(t);
-                        setCertificate({
-                          joinedDate: t.joinedDate,
-                          endDate:
-                            t.joinedDate && t.duration
-                              ? calculateEndDate(t.joinedDate, t.duration)
-                                .datepicker
-                              : "",
-                          name: t.name,
-                          duration: t.duration,
-                          batch: t?.batches[0].name,
-                        });
-                        setOpenGenerateModal(true);
-                      }}
-                      className="
+                          {/* Certificate */}
+                          <button
+                            disabled={t.trainingStatus !== "completed"}
+                            onClick={() => {
+                              setGenerateType("certificate");
+                              setSelectedTrainee(t);
+                              setCertificate({
+                                joinedDate: t.joinedDate,
+                                endDate:
+                                  t.joinedDate && t.duration
+                                    ? calculateEndDate(t.joinedDate, t.duration)
+                                      .datepicker
+                                    : "",
+                                name: t.name,
+                                duration: t.duration,
+                                batch: t?.batches.at(-1).name,
+                              });
+                              setOpenGenerateModal(true);
+                            }}
+                            className="
       group flex items-center gap-2
       w-9 hover:w-32
       rounded-full bg-primary text-white
@@ -1164,34 +960,34 @@ const Trainee = () => {
       disabled:opacity-50 disabled:cursor-not-allowed
       cursor-pointer
     "
-                    >
-                      <Award size={18} className="shrink-0" />
-                      <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        Certificate
-                      </span>
-                    </button>
+                          >
+                            <Award size={18} className="shrink-0" />
+                            <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              Certificate
+                            </span>
+                          </button>
 
-                    {/* Offer Letter */}
-                    <button
-                      disabled={t.trainingStatus !== "completed"}
-                      onClick={() => {
-                        setGenerateType("offer");
-                        setSelectedTrainee(t);
-                        setOfferForm({
-                          joinedAt: t.joinedDate || "",
-                          name: t.name || "",
-                          firstName: t.name?.split(" ")[0] || "",
-                          duration: t.duration || "",
-                          technology: t.batches[0].name || "",
-                          compensation: "",
-                          signerName: "",
-                          signerDesignation: "",
-                          contactPerson: "",
-                          signerMobile: "",
-                        });
-                        setOpenGenerateModal(true);
-                      }}
-                      className="
+                          {/* Offer Letter */}
+                          <button
+                            disabled={t.trainingStatus !== "completed"}
+                            onClick={() => {
+                              setGenerateType("offer");
+                              setSelectedTrainee(t);
+                              setOfferForm({
+                                joinedAt: t.joinedDate || "",
+                                name: t.name || "",
+                                firstName: t.name?.split(" ")[0] || "",
+                                duration: t.duration || "",
+                                technology: t.batches[0].name || "",
+                                compensation: "",
+                                signerName: "",
+                                signerDesignation: "",
+                                contactPerson: "",
+                                signerMobile: "",
+                              });
+                              setOpenGenerateModal(true);
+                            }}
+                            className="
       group flex items-center gap-2
       w-9 hover:w-32
       rounded-full bg-primary text-white
@@ -1201,17 +997,20 @@ const Trainee = () => {
       disabled:opacity-50 disabled:cursor-not-allowed
       cursor-pointer
     "
-                    >
-                      <FileTextIcon size={18} className="shrink-0" />
-                      <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        Offer Letter
-                      </span>
-                    </button>
-                  </div>
-                </div>
+                          >
+                            <FileTextIcon size={18} className="shrink-0" />
+                            <span className="text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              Offer Letter
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
       {generateType === "Receipt" && (
@@ -1247,6 +1046,42 @@ const Trainee = () => {
                 />
                 {errors.name && (
                   <p className="text-xs text-red-500">{errors.name}</p>
+                )}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="text-xs font-medium text-slate-600">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  value={receipt.phone}
+                  onChange={(e) => handleReceiptChange("phone", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+      ${errors.phone ? "border-red-400 animate-shake" : "border-slate-300"}
+      bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
+                />
+                {errors.phone && (
+                  <p className="text-xs text-red-500">{errors.phone}</p>
+                )}
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-xs font-medium text-slate-600">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={receipt.email}
+                  onChange={(e) => handleReceiptChange("email", e.target.value)}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm
+      ${errors.email ? "border-red-400 animate-shake" : "border-slate-300"}
+      bg-white focus:outline-none focus:ring-2 focus:ring-primary/40`}
+                />
+                {errors.email && (
+                  <p className="text-xs text-red-500">{errors.email}</p>
                 )}
               </div>
 
@@ -1763,6 +1598,448 @@ const Trainee = () => {
           </form>
         </Modal>
       )}
+
+      {openDetails && activeTrainee && (() => {
+        const isEdit = editingId === activeTrainee.user_id;
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-3xl rounded-3xl shadow-2xl relative overflow-hidden
+                bg-gradient-to-br from-[#FFF8EE] via-white to-[#FFEFD9]">
+
+              {/* Header */}
+              <div className="px-6 py-4 border-b flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold text-slate-800">
+                    {activeTrainee.name || "Trainee Details"}
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    User ID: {activeTrainee.user_id}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {!isEdit ? (
+                    <button
+                      onClick={() => startEdit(activeTrainee)}
+                      className="cursor-pointer px-4 py-1.5 text-sm rounded-lg bg-primary text-white hover:bg-primary-dark transition"
+                    >
+                      Edit
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          saveTrainee(activeTrainee.user_id)
+                          setActiveTrainee(null)
+                          setOpenDetails(false)
+                        }}
+                        disabled={loading}
+                        className="px-4 py-1.5 text-sm rounded-lg bg-primary text-white hover:bg-primary-dark cursor-pointer transition disabled:opacity-60"
+                      >
+                        {loading ? "Saving..." : "Save"}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setEditingId(null);
+                          setDraft({});
+                        }}
+                        className="cursor-pointer px-4 py-1.5 text-sm rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 transition"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setOpenDetails(false);
+                      setActiveTrainee(null);
+                      setEditingId(null);
+                      setDraft({});
+                    }}
+                    className="cursor-pointer p-2 rounded-full hover:bg-slate-100"
+                  >
+                    <X />
+                  </button>
+                </div>
+
+              </div>
+
+              {/* Content */}
+              <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+
+                {/* Academic Info */}
+                <div className="bg-slate-50 shadow rounded-2xl p-4">
+                  <h3 className="text-sm font-semibold text-slate-600 mb-3">
+                    Academic Information
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <Row label="Education">
+                      {isEdit ? (
+                        <TextField size="small" value={draft.education} onChange={(e) => updateDraft("education", e.target.value)} />
+                      ) : activeTrainee.education || "-"}
+                    </Row>
+
+                    <Row label="College">
+                      {isEdit ? (
+                        <TextField size="small" value={draft.college} onChange={(e) => updateDraft("college", e.target.value)} />
+                      ) : activeTrainee.college || "-"}
+                    </Row>
+
+                    <Row label="Branch">
+                      {isEdit ? (
+                        <Select size="small" value={draft.branch ?? ""} onChange={(e) => updateDraft("branch", e.target.value)}>
+                          {ConstantService.Branch.map((b) => (
+                            <MenuItem key={b.value} value={b.value}>{b.label}</MenuItem>
+                          ))}
+                        </Select>
+                      ) : (
+                        ConstantService.Branch.find(b => b.value === activeTrainee.branch)?.label || "-"
+                      )}
+                    </Row>
+
+                    <Row label="Duration">
+                      {isEdit ? (
+                        <Select size="small" value={draft.duration ?? ""} onChange={(e) => updateDraft("duration", e.target.value)}>
+                          {ConstantService.Duration.map((d) => (
+                            <MenuItem key={d.value} value={d.value}>{d.label}</MenuItem>
+                          ))}
+                        </Select>
+                      ) : (
+                        ConstantService.Duration.find(d => d.value === activeTrainee.duration)?.label || "-"
+                      )}
+                    </Row>
+                  </div>
+                </div>
+
+                {/* Personal Info */}
+                <div className="bg-slate-50 shadow rounded-2xl p-4">
+                  <h3 className="text-sm font-semibold text-slate-600 mb-3">
+                    Personal Information
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <Row label="Phone">
+                      {isEdit ? (
+                        <TextField
+                          size="small"
+                          value={draft.phone}
+                          onChange={(e) => updateDraft("phone", e.target.value)}
+                        />
+                      ) : activeTrainee.phone || "-"}
+                    </Row>
+
+                    <Row label="Shift">
+                      {isEdit ? (
+                        <Select
+                          size="small"
+                          value={draft.shift ?? ""}
+                          onChange={(e) => updateDraft("shift", e.target.value)}
+                        >
+                          {ConstantService.Shift.map((s) => (
+                            <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                          ))}
+                        </Select>
+                      ) : (
+                        ConstantService.Shift.find(s => s.value === activeTrainee.shift)?.label || "-"
+                      )}
+                    </Row>
+
+                    {/* System Type */}
+                    <Row label="System Type">
+                      {isEdit ? (
+                        <div className="flex items-center gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="radio"
+                              name="system"
+                              value="PERSONAL"
+                              checked={draft.system === "PERSONAL"}
+                              onChange={(e) => updateDraft("system", e.target.value)}
+                              className="sr-only"
+                            />
+
+                            <span
+                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition
+      ${draft.system === "PERSONAL"
+                                  ? "border-orange-500"
+                                  : "border-slate-400"
+                                }`}
+                            >
+                              {draft.system === "PERSONAL" && (
+                                <span className="w-2 h-2 rounded-full bg-orange-500" />
+                              )}
+                            </span>
+
+                            <span className="text-xs text-slate-700">Personal</span>
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="radio"
+                              name="system"
+                              value="DEPARTMENT"
+                              checked={draft.system === "DEPARTMENT"}
+                              onChange={(e) => updateDraft("system", e.target.value)}
+                              className="sr-only"
+                            />
+
+                            <span
+                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition
+      ${draft.system === "DEPARTMENT"
+                                  ? "border-orange-500"
+                                  : "border-slate-400"
+                                }`}
+                            >
+                              {draft.system === "DEPARTMENT" && (
+                                <span className="w-2 h-2 rounded-full bg-orange-500" />
+                              )}
+                            </span>
+
+                            <span className="text-xs text-slate-700">Department</span>
+                          </label>
+
+                        </div>
+                      ) : (
+                        activeTrainee.system || "-"
+                      )}
+                    </Row>
+
+                    {/* Configuration (only when PERSONAL) */}
+                    {isEdit && draft.system === "PERSONAL" && (
+                      <Row label="Configuration">
+                        <TextField
+                          size="small"
+                          placeholder="e.g. i5 / 16GB / 512GB SSD"
+                          value={draft.configuration || ""}
+                          onChange={(e) => updateDraft("configuration", e.target.value)}
+                        />
+                      </Row>
+                    )}
+
+                    {!isEdit && activeTrainee.system === "PERSONAL" && (
+                      <Row label="Configuration">
+                        {activeTrainee.configuration || "-"}
+                      </Row>
+                    )}
+
+                    <Row label="Notes">
+                      <IconButton size="small" onClick={() => navigate(`/admin/notes/${activeTrainee.user_id}`)}>
+                        <CalendarDays size={16} className="text-primary" />
+                      </IconButton>
+                    </Row>
+                  </div>
+                </div>
+
+                {/* Fees & Status */}
+                <div className="bg-slate-50 shadow rounded-2xl p-4">
+                  <h3 className="text-sm font-semibold text-slate-600 mb-3">
+                    Fees & Status
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <Row label="Fees">
+                      {isEdit ? (
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={calculateFees(activeTrainee) || draft.feesToPay}
+                          onChange={(e) => updateDraft("feesToPay", e.target.value)}
+                        />
+                      ) : calculateFees(activeTrainee)}
+                    </Row>
+
+                    <Row label="Admission Status">
+                      {isEdit ? (
+                        <Select size="small" value={draft.admissionStatus} onChange={(e) => updateDraft("admissionStatus", e.target.value)}>
+                          {ConstantService.AdmissionStatus.map((s) => (
+                            <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                          ))}
+                        </Select>
+                      ) : (
+                        ConstantService.AdmissionStatus.find(s => s.value === activeTrainee.admissionStatus)?.label || "-"
+                      )}
+                    </Row>
+                  </div>
+                </div>
+
+                {/* Documents & Flags */}
+                <div className="bg-slate-50 shadow rounded-2xl p-4">
+                  <h3 className="text-sm font-semibold text-slate-600 mb-3">
+                    Documents & Flags
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <Row label="Certificate Issued">
+                      {isEdit ? (
+                        <div className="flex items-center gap-2">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={draft.certificateIssued === true}
+                              onChange={(e) =>
+                                updateDraft("certificateIssued", e.target.checked ? true : false)
+                              }
+                              className="sr-only peer"
+                            />
+
+                            {/* Track */}
+                            <div
+                              className="w-10 h-5 bg-slate-300 rounded-full
+                     peer-checked:bg-orange-500
+                     transition-colors duration-300"
+                            ></div>
+
+                            {/* Thumb */}
+                            <div
+                              className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full
+                     shadow
+                     transform transition-transform duration-300
+                     peer-checked:translate-x-5"
+                            ></div>
+                          </label>
+
+                          <span className="text-xs text-slate-600">
+                            {draft.certificateIssued === true ? "Yes" : "No"}
+                          </span>
+                        </div>
+                      ) : (
+                        activeTrainee.certificateIssued === true ? "Yes" : "No"
+                      )}
+                    </Row>
+
+                    <Row label="Want To Board">
+                      {isEdit ? (
+                        <div className="flex items-center gap-2">
+                          <label
+                            className={`relative inline-flex items-center
+          ${draft.trainingStatus !== "completed"
+                                ? "opacity-50 cursor-not-allowed"
+                                : "cursor-pointer"
+                              }`}
+                          >
+                            <input
+                              type="checkbox"
+                              disabled={draft.trainingStatus !== "completed"}
+                              checked={draft.wantToBoard === true}
+                              onChange={(e) =>
+                                updateDraft("wantToBoard", e.target.checked ? true : false)
+                              }
+                              className="sr-only peer"
+                            />
+
+                            <div
+                              className="w-10 h-5 bg-slate-300 rounded-full
+                     peer-checked:bg-orange-500
+                     transition-colors duration-300"
+                            ></div>
+
+                            <div
+                              className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full
+                     shadow
+                     transform transition-transform duration-300
+                     peer-checked:translate-x-5"
+                            ></div>
+                          </label>
+
+                          <span className="text-xs text-slate-600">
+                            {draft.wantToBoard === true ? "Yes" : "No"}
+                          </span>
+                        </div>
+                      ) : (
+                        activeTrainee.wantToBoard === true ? "Yes" : "No"
+                      )}
+                    </Row>
+
+
+                    <Row label="NDA Signed">
+                      {isEdit ? (
+                        <div className="flex items-center gap-2">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={draft.ndaSigned === true}
+                              onChange={(e) =>
+                                updateDraft("ndaSigned", e.target.checked ? true : false)
+                              }
+                              className="sr-only peer"
+                            />
+
+                            <div
+                              className="w-10 h-5 bg-slate-300 rounded-full
+                     peer-checked:bg-orange-500
+                     transition-colors duration-300"
+                            ></div>
+
+                            <div
+                              className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full
+                     shadow
+                     transform transition-transform duration-300
+                     peer-checked:translate-x-5"
+                            ></div>
+                          </label>
+
+                          <span className="text-xs text-slate-600">
+                            {draft.ndaSigned === true ? "Yes" : "No"}
+                          </span>
+                        </div>
+                      ) : (
+                        activeTrainee.ndaSigned === true ? "Yes" : "No"
+                      )}
+                    </Row>
+
+
+                    <Row label="Aadhar Submitted">
+                      {isEdit ? (
+                        <div className="flex items-center gap-2">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={draft.adharSubmitted === true}
+                              onChange={(e) =>
+                                updateDraft("adharSubmitted", e.target.checked ? true : false)
+                              }
+                              className="sr-only peer"
+                            />
+
+                            <div
+                              className="w-10 h-5 bg-slate-300 rounded-full
+                     peer-checked:bg-orange-500
+                     transition-colors duration-300"
+                            ></div>
+
+                            <div
+                              className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full
+                     shadow
+                     transform transition-transform duration-300
+                     peer-checked:translate-x-5"
+                            ></div>
+                          </label>
+
+                          <span className="text-xs text-slate-600">
+                            {draft.adharSubmitted === true ? "Yes" : "No"}
+                          </span>
+                        </div>
+                      ) : (
+                        activeTrainee.adharSubmitted === true ? "Yes" : "No"
+                      )}
+                    </Row>
+
+                    <Row label="Remarks">
+                      {isEdit ? (
+                        <TextField size="small" value={draft.remarks2 || ""} onChange={(e) => updateDraft("remarks2", e.target.value)} />
+                      ) : activeTrainee.remarks2 || "-"}
+                    </Row>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </>
   );
 };

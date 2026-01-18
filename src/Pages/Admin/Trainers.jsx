@@ -187,25 +187,16 @@ const Trainers = () => {
         </div>
 
         {/* ================= SEARCH ================= */}
-        <div
-          className="
-      bg-white/60 backdrop-blur-xl
-      rounded-2xl p-4
-      border border-white/40
-      shadow-sm
-      max-w-md
-    "
-        >
-          <div className="relative">
+          <div className="relative w-sm">
             <Search
-              className="absolute left-3 top-3 text-gray-400"
+              className="absolute left-3 top-[1.2rem] text-gray-400"
               size={18}
             />
             <input
               placeholder="Search by name or email..."
               className="
-          w-full pl-10 pr-4 py-2.5
-          rounded-xl border border-slate-300
+          w-full pl-10 p-4
+          rounded-xl border-2 border-primary
           bg-white
           text-sm
           focus:ring-2 focus:ring-[#FB8924]/40
@@ -215,7 +206,6 @@ const Trainers = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-        </div>
 
         {/* ================= TABLE ================= */}
         <div className="grid grid-cols-1 bg-white p-4 rounded-2xl md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
@@ -225,7 +215,7 @@ const Trainers = () => {
               className="rounded-2xl overflow-hidden  shadow bg-white flex flex-col"
             >
               {/* Header */}
-              <div className="bg-orange-50 h-28 flex items-center justify-center">
+              <div className="bg-orange-50 h-22 flex items-center justify-center">
                 <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center">
                   <span className="text-orange-600 font-semibold text-lg">
                     {trainer.name
@@ -242,7 +232,7 @@ const Trainers = () => {
                 <Row label="Name">{trainer.name}</Row>
                 <Row label="Email">{trainer.email}</Row>
 
-                <Row label="Batches">
+                <Row label="Courses">
                   <Chip
                     label={trainer.batchCount}
                     size="small"
@@ -317,7 +307,7 @@ const Trainers = () => {
         "
             >
               <h2 className="text-lg font-semibold text-gray-800">
-                Assign Batches – {editingTrainer.name}
+                Assign Courses – {editingTrainer.name}
               </h2>
 
               <div className="space-y-2 max-h-60 overflow-y-auto">

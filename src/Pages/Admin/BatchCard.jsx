@@ -34,7 +34,7 @@ export default function BatchCard({
       "
     >
       {/* ---------- IMAGE / ICON ---------- */}
-      <div className="h-32 bg-orange-50 flex items-center justify-center">
+      <div className="h-22 bg-orange-50 flex items-center justify-center">
         <div className="p-4 bg-orange-100 rounded-2xl text-orange-500">
           <Layers size={28} />
         </div>

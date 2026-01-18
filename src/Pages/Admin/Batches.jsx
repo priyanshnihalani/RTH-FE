@@ -76,10 +76,10 @@ const Batches = () => {
                 >
                     <div>
                         <h2 className="text-3xl font-bold text-gray-800">
-                            Training Batches
+                            Training Courses
                         </h2>
                         <p className="text-sm text-gray-500">
-                            Manage trainers and enrolled trainees per batch.
+                            Manage trainers and enrolled trainees per courses.
                         </p>
                     </div>
 
@@ -96,7 +96,7 @@ const Batches = () => {
       "
                     >
                         <Plus size={16} />
-                        Add Batch
+                        Add Course
                     </button>
                 </div>
 

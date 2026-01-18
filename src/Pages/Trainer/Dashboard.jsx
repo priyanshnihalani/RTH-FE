@@ -4,7 +4,7 @@ import BatchSkeleton from "./BatchSkeleton";
 import { useEffect, useState } from "react";
 import { ApiService } from "../../Services/ApiService";
 import { useNavigate, useOutletContext } from "react-router-dom";
-
+import { Layers, Users, Clock, CheckCircle } from "lucide-react";
 const Dashboard = () => {
     const [batches, setBatches] = useState([])
     const { trainerId } = useOutletContext()
@@ -32,30 +32,53 @@ const Dashboard = () => {
 
     return (
         <>
-            <div className="px-8 pt-6 space-y-10">
+            <div className="p-8 space-y-10 bg-linear-to-br min-h-screen">
+                {/* Header */}
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">
+                    <h1 className="text-2xl font-semibold text-slate-800">
                         Trainer Dashboard
                     </h1>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-slate-500 text-sm">
                         Manage your batches, students and tasks
                     </p>
                 </div>
 
+                {/* Stats */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard label="Batches" value={batches.length} type="batches" />
-                    <StatCard label="Students" value={batches.reduce((acc, cur) => acc + cur?.Trainees?.length, 0)} type="students" />
-                    <StatCard label="Pending Tasks" value={statusCount?.IN_PROGRESS || 0} type="pending" />
-                    <StatCard label="Completed Tasks" value={statusCount?.COMPLETED || 0} type="completed" />
+                    <StatCard title="Batches" value={batches.length} icon={Layers} />
+                    <StatCard
+                        title="Students"
+                        value={batches.reduce((acc, cur) => acc + cur?.Trainees?.length, 0)}
+                        icon={Users}
+                    />
+                    <StatCard
+                        title="Pending Tasks"
+                        value={statusCount?.IN_PROGRESS || 0}
+                        icon={Clock}
+                    />
+                    <StatCard
+                        title="Completed Tasks"
+                        value={statusCount?.COMPLETED || 0}
+                        icon={CheckCircle}
+                    />
                 </div>
+
+                {/* Panels */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Assigned Batches */}
-                    <div className="bg-white rounded-3xl shadow p-6 space-y-4">
-                        <h2 className="text-lg font-semibold">Assigned Batches</h2>
+                    <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-base font-semibold text-slate-800">
+                                Assigned Batches
+                            </h2>
+                            <span className="text-xs px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 font-medium">
+                                {batches.length}
+                            </span>
+                        </div>
 
                         {batches.length > 0 ? (
                             <div className="space-y-3">
-                                {batches.map(batch => (
+                                {batches.map((batch) => (
                                     <BatchCard
                                         key={batch.id}
                                         name={batch.name}
@@ -68,53 +91,71 @@ const Dashboard = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-gray-500 text-sm py-6 text-center">
+                            <div className="text-slate-400 text-sm py-8 text-center">
                                 No batches assigned yet.
                             </div>
                         )}
                     </div>
 
-                    <div className="bg-white rounded-3xl shadow p-6 space-y-4">
-                        <h2 className="text-lg font-semibold">Recent Tasks</h2>
+                    {/* Recent Tasks */}
+                    <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-base font-semibold text-slate-800">
+                                Recent Tasks
+                            </h2>
+                            <span className="text-xs px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 font-medium">
+                                Last 5
+                            </span>
+                        </div>
 
-                        {batches.some(b => b.Tasks?.length) ? (
-                            <div className="space-y-3">
+                        {batches.some((b) => b.Tasks?.length) ? (
+                            <div className="space-y-2.5">
                                 {batches
-                                    .flatMap(b => b.Tasks.map(t => ({ ...t, batch: b.name })))
+                                    .flatMap((b) => b.Tasks.map((t) => ({ ...t, batch: b.name })))
                                     .slice(0, 5)
-                                    .map(task => (
+                                    .map((task) => (
                                         <div
                                             key={task.id}
-                                            className="flex items-center justify-between p-3 rounded-xl shadow hover:shadow-sm transition"
+                                            className="
+                    flex items-center justify-between
+                    p-3 rounded-xl
+                    border border-slate-100
+                    hover:bg-slate-50 transition
+                  "
                                         >
-                                            <div className="space-y-0.5">
-                                                <p className="text-sm font-medium text-gray-800">
+                                            <div className="space-y-0.5 pr-4">
+                                                <p className="text-sm font-medium text-slate-800">
                                                     {task.title}
                                                 </p>
-                                                <p className="text-xs text-gray-500 line-clamp-1">
+                                                <p className="text-xs text-slate-500 line-clamp-1">
                                                     {task.description}
                                                 </p>
                                             </div>
 
                                             <span
-                                                className={`text-xs px-2 py-1 rounded-full ${task.status === "COMPLETED"
-                                                        ? "bg-green-100 text-green-700"
-                                                        : "bg-orange-100 text-orange-700"
+                                                className={`text-xs px-2.5 py-1 rounded-full font-medium ${task.status === "COMPLETED"
+                                                        ? "bg-green-50 text-green-700"
+                                                        : task.status === "IN_PROGRESS"
+                                                            ? "bg-blue-50 text-blue-700"
+                                                            : "bg-orange-50 text-orange-700"
                                                     }`}
                                             >
-                                                {task.status === "COMPLETED" ? "Completed" : task.status === "IN_PROGRESS" ? "In Progress" : "Assigned"}
+                                                {task.status === "COMPLETED"
+                                                    ? "Completed"
+                                                    : task.status === "IN_PROGRESS"
+                                                        ? "In Progress"
+                                                        : "Assigned"}
                                             </span>
                                         </div>
                                     ))}
                             </div>
                         ) : (
-                            <div className="text-gray-500 text-sm py-6 text-center">
+                            <div className="text-slate-400 text-sm py-8 text-center">
                                 No tasks assigned yet.
                             </div>
                         )}
                     </div>
                 </div>
-
             </div>
         </>
     );

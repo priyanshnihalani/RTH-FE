@@ -59,7 +59,7 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
     try {
       const res = await ApiService.post("/api/batch/create", formData);
       if (res.message == "Batch Created!") {
-        toast.success("Batch Created Successfully!", {
+        toast.success("Course Created Successfully!", {
           icon: <ToastLogo />,
           style: {
             color: "#16a34a",
@@ -82,8 +82,15 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
       setSubmitting(false);
       onClose();
       setFormData({
-        technology: ""
-      })
+        technology: "",
+        prices: {
+          0.5: "",
+          1: "",
+          1.5: "",
+          3: "",
+          6: ""
+        }
+      });
     }
   };
 
@@ -97,7 +104,7 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
         {/* -------- BASIC INFO -------- */}
         <div className="space-y-4">
           <h3 className="text-sm font-semibold text-slate-700">
-            Batch Information
+            Course Information
           </h3>
 
           {/* Batch Name */}
@@ -123,7 +130,7 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
         {/* Batch Fees */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-slate-600">
-            Batch Fees
+            Course Fees
           </label>
 
           <div className="grid grid-cols-2 gap-3">
@@ -182,7 +189,7 @@ const AddBatchModal = ({ open, onClose, onSuccess }) => {
               disabled:opacity-60
             "
           >
-            {submitting ? "Creating..." : "Create Batch"}
+            {submitting ? "Creating..." : "Create Course"}
           </button>
         </div>
       </form>

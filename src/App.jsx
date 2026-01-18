@@ -34,6 +34,8 @@ import DocsLayout from "./Layout/DocsLayout";
 import OodoLeaves from "./Pages/Docs/OodoLeaves";
 import FrontendRole from "./Pages/Docs/FrontendRole";
 import BackendRole from "./Pages/Docs/BackendRole";
+import Payments from "./Pages/Admin/Payment";
+import CertificateVarification from "./Pages/Common/CertificateVerification";
 
 function App() {
   const router = createBrowserRouter([
@@ -85,10 +87,11 @@ function App() {
       ),
       children: [
         { path: "dashboard", element: <AdminDashboard /> },
-        { path: "batches", element: <Batches /> },
+        { path: "courses", element: <Batches /> },
         { path: "trainers", element: <Trainers /> },
         { path: "trainees", element: <Trainees /> },
         { path: "notes/:id", element: <Notes /> },
+        { path: "payments", element: <Payments/>}
       ],
     },
 
@@ -137,8 +140,11 @@ function App() {
       ]
     },
     { path: "/pre-board", element: <PreBoard /> },
+    {path: "/certificate-verification/:verify", element: <CertificateVarification/>},
     { path: "/unauthorized", element: <Unauthorized /> },
+    
     { path: "*", element: <NotFound /> },
+
   ]);
 
   return <>

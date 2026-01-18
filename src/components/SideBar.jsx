@@ -4,6 +4,7 @@ import {
   Users,
   User,
   User2,
+  IndianRupee
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
@@ -12,9 +13,10 @@ const mainMenu = [
 ];
 
 const managementMenu = [
-  { name: "Batches", path: "/admin/batches", icon: Layers },
+  { name: "Courses", path: "/admin/courses", icon: Layers },
   { name: "Trainers", path: "/admin/trainers", icon: User },
   { name: "Trainees", path: "/admin/trainees", icon: Users },
+  { name: "Payments", path: "/admin/payments", icon: IndianRupee },
 ];
 
 const linkClass = ({ isActive }) =>

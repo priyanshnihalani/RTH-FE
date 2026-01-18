@@ -120,8 +120,8 @@ const Login = () => {
                     <div class="absolute top-1/2 left-1/4 w-6 h-6 bg-primary/20 rounded-full"></div>
                     <div class="absolute top-1/3 right-1/4 w-12 h-12 border-4 border-primary/10 rounded-xl transform rotate-45"></div>
                 </div>
-                <div class="border-b border-white/40 bg-white/40 backdrop-blur-md sticky top-0 z-50">
-                    <div class="max-w-360 mx-auto px-4 md:px-8">
+                <div class="backdrop-blur-md sticky top-0 z-50">
+                    <div class="max-w-360 mx-auto px-4 py-4 md:px-10">
                         <header class="flex items-center justify-between h-16">
                             <div class="flex items-center gap-3">
                                 <div class="size-9 text-primary flex items-center justify-center rounded-xl bg-gradient-to-br from-white to-orange-50 shadow-sm border border-white">
@@ -197,7 +197,7 @@ const Login = () => {
                             <div class="space-y-6 max-w-lg z-10">
                                 <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/70 border border-white text-primary text-xs font-bold uppercase tracking-wider shadow-sm backdrop-blur-sm">
                                     <span class="flex h-2 w-2 relative">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FB8924] opacity-75"></span>
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                                         <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                                     </span>
                                     Productivity Hub
@@ -364,7 +364,6 @@ const Login = () => {
                         </form>
                     </div>
                 </main>
-
             </div>
         </>
     )
